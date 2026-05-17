@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <radialGradient id="space" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0f0c29"/>
+      <stop offset="60%" stop-color="#090422"/>
+      <stop offset="100%" stop-color="#020008"/>
+    </radialGradient>
+    <radialGradient id="nebula" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#4f46e5" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="planet" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="40%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#2e1065"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="35%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#e2d9f3"/>
+      <stop offset="100%" stop-color="#9d84c7"/>
+    </radialGradient>
+    <filter id="blur1">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <filter id="blur2">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <!-- Deep space background -->
+  <rect width="500" height="500" fill="url(#space)"/>
+
+  <!-- Nebula glow -->
+  <ellipse cx="250" cy="250" rx="220" ry="220" fill="url(#nebula)"/>
+  <ellipse cx="320" cy="180" rx="120" ry="80" fill="#4f46e5" opacity="0.08" filter="url(#blur1)"/>
+  <ellipse cx="160" cy="320" rx="90" ry="60" fill="#7c3aed" opacity="0.1" filter="url(#blur1)"/>
+
+  <!-- Stars - many scattered -->
+  <circle cx="42" cy="38" r="1.5" fill="white" opacity="0.9"/>
+  <circle cx="88" cy="72" r="1" fill="white" opacity="0.7"/>
+  <circle cx="135" cy="25" r="2" fill="white" opacity="0.8"/>
+  <circle cx="198" cy="55" r="1.2" fill="white" opacity="0.6"/>
+  <circle cx="310" cy="30" r="1.5" fill="white" opacity="0.9"/>
+  <circle cx="365" cy="68" r="1" fill="white" opacity="0.7"/>
+  <circle cx="420" cy="22" r="2" fill="white" opacity="0.8"/>
+  <circle cx="462" cy="85" r="1.2" fill="#c4b5fd" opacity="0.9"/>
+  <circle cx="480" cy="42" r="1" fill="white" opacity="0.6"/>
+  <circle cx="22" cy="150" r="1.5" fill="white" opacity="0.8"/>
+  <circle cx="68" cy="188" r="1" fill="#e0d9ff" opacity="0.7"/>
+  <circle cx="460" cy="140" r="1.5" fill="white" opacity="0.8"/>
+  <circle cx="490" cy="200" r="1" fill="white" opacity="0.6"/>
+  <circle cx="35" cy="350" r="2" fill="white" opacity="0.7"/>
+  <circle cx="75" cy="420" r="1" fill="white" opacity="0.8"/>
+  <circle cx="478" cy="380" r="1.5" fill="#c4b5fd" opacity="0.9"/>
+  <circle cx="455" cy="460" r="1" fill="white" opacity="0.6"/>
+  <circle cx="150" cy="470" r="2" fill="white" opacity="0.8"/>
+  <circle cx="220" cy="490" r="1" fill="white" opacity="0.5"/>
+  <circle cx="380" cy="475" r="1.5" fill="white" opacity="0.7"/>
+  <!-- Bright stars -->
+  <circle cx="110" cy="115" r="2.5" fill="white" opacity="0.95"/>
+  <line x1="110" y1="107" x2="110" y2="123" stroke="white" stroke-width="0.6" opacity="0.4"/>
+  <line x1="102" y1="115" x2="118" y2="115" stroke="white" stroke-width="0.6" opacity="0.4"/>
+  <circle cx="430" cy="320" r="2.5" fill="#c4b5fd" opacity="0.95"/>
+  <line x1="430" y1="312" x2="430" y2="328" stroke="#c4b5fd" stroke-width="0.6" opacity="0.4"/>
+  <line x1="422" y1="320" x2="438" y2="320" stroke="#c4b5fd" stroke-width="0.6" opacity="0.4"/>
+
+  <!-- Saturn-like rings (behind planet) -->
+  <ellipse cx="250" cy="265" rx="185" ry="32" fill="none" stroke="#a78bfa" stroke-width="18" opacity="0.25"/>
+  <ellipse cx="250" cy="265" rx="185" ry="32" fill="none" stroke="#c4b5fd" stroke-width="6" opacity="0.35"/>
+
+  <!-- Planet glow -->
+  <circle cx="250" cy="250" r="115" fill="url(#glow)" filter="url(#blur1)"/>
+
+  <!-- Planet body -->
+  <circle cx="250" cy="250" r="95" fill="url(#planet)"/>
+
+  <!-- Planet surface bands -->
+  <ellipse cx="250" cy="220" rx="80" ry="18" fill="#9d77ff" opacity="0.3"/>
+  <ellipse cx="250" cy="265" rx="75" ry="12" fill="#4c1d95" opacity="0.4"/>
+  <ellipse cx="250" cy="285" rx="70" ry="10" fill="#6d28d9" opacity="0.25"/>
+  <!-- Storm spot -->
+  <ellipse cx="285" cy="240" rx="22" ry="15" fill="#c4b5fd" opacity="0.3"/>
+  <ellipse cx="285" cy="240" rx="12" ry="8" fill="#ede9fe" opacity="0.35"/>
+
+  <!-- Rings (in front of planet bottom) -->
+  <path d="M65,265 Q250,297 435,265" fill="none" stroke="#a78bfa" stroke-width="18" opacity="0.3"/>
+  <path d="M65,265 Q250,297 435,265" fill="none" stroke="#ddd6fe" stroke-width="4" opacity="0.5"/>
+
+  <!-- Small moon -->
+  <circle cx="390" cy="148" r="28" fill="url(#moon)"/>
+  <circle cx="378" cy="140" r="8" fill="#7c6aad" opacity="0.4"/>
+  <circle cx="400" cy="158" r="5" fill="#7c6aad" opacity="0.3"/>
+
+  <!-- Moon shadow -->
+  <path d="M390,120 A28,28 0 0,0 390,176" fill="#2e1065" opacity="0.55"/>
+</svg>

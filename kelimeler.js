@@ -1,0 +1,21 @@
+const KELIMELER = [
+  'ÖZLEM','TUZAK','YÜREK','KAFES','ALTIN','KUZEY','ÖZGÜR','IRMAK',
+  'ÖRDEK','BORSA','ÇİZGİ','KEMAN','MASAL','YABAN','ÖNDER','KÖPRÜ',
+  'DEMİR','FİLİZ','HOROZ','ÇAKAL','TÜRKÜ','ELMAS','DEMET','HAMUR',
+  'ZEMİN','ÇELİK','REÇEL','TABLO','KÜREK','ÇIRAK','SİVRİ','YÜZEY',
+  'DALGA','UZMAN','TEMEL','DOĞAL','KANAL','YAYLA','BARAJ','TÜNEL',
+  'BÖLGE','SINIR','YOLCU','SEFER','KURAL','ÇAKIL','TABAN','DONUK',
+  'SOLUK','VİŞNE','KIRAZ','İNCİR','KAYIŞ','KILIF','SOYUT','BOYUT',
+  'NİŞAN','ŞAHİN','KUMRU','YIĞIN','ÇEYİZ','ÇIĞIR','BORAN','BUDAK',
+  'KAVAK','KIRIŞ','HASAT','TİLKİ','TURNA','TEKNE','GİYSİ','HAYAL',
+  'KABUS','FELEK','MİRAS','FENER','TEPSİ','ÇUVAL','KÜMES','SIĞIR',
+  'TOHUM','ÇİMEN','ŞAFAK','SERÇE','TESTİ','GÜVEY','DÜĞÜM','BİLGİ',
+  'BARIŞ','DEĞER','YETKİ','YATAY','DİKEY','SERVİ','ÇINAR','SÖĞÜT',
+  'ÇALIM','ALÇAK','DEVİR','BOYUN','TENHA','KEMER','BAŞAK','YULAF',
+  'DARBE','TAŞIT','KOŞUL','ÇÖKÜK','NESNE','SERAP','ÇUKUR','TOPUZ',
+  'GÜÇLÜ','CESUR','YIKIM','BASKI','KAVGA','ÇARŞI','KEMİK','KAVUK',
+  'TARAK','ZIRVA','ÖZGÜN','KÖYLÜ','BÜYÜK','KÜÇÜK','TARAF','ÇATIK',
+  'HAKİM','SAÇAK','ŞAKAK','DAYAK','YOĞUN','TAŞRA','BURGU','ÇEVRE',
+  'ÇATMA','SAVUŞ','YUMAK','GÜBRE','ÇÖMÇE','KAYIN','YUMRU','ÖZDEŞ',
+  'SÜZME','SAKIN','GEÇİM'
+];

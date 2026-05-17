@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="60%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <radialGradient id="glowPink" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gradPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#be185d"/>
+    </linearGradient>
+    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="gradYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+    <linearGradient id="gradWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="blurLg">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+    <filter id="blurSm">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+  </defs>
+
+  <rect width="500" height="500" fill="url(#bg)"/>
+  <circle cx="150" cy="150" r="180" fill="url(#glowPink)"/>
+  <circle cx="350" cy="350" r="180" fill="url(#glowBlue)"/>
+  <path d="M 0,200 Q 250,100 500,200 T 1000,200" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="2"/>
+  <path d="M 0,300 Q 250,200 500,300 T 1000,300" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+  <g filter="url(#blurLg)" opacity="0.35">
+    <path d="M 40,460 L 40,320 Q 80,240 120,320 Q 160,240 200,320 L 200,460" fill="none" stroke="url(#gradYellow)" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="420" cy="80" r="65" fill="url(#gradWhite)"/>
+    <circle cx="475" cy="65" r="25" fill="#020617"/>
+  </g>
+  <g transform="translate(250, 250) scale(1.4)" filter="url(#shadow)">
+    <path d="M -25,-25 C -50,-50 -70,-10 -25,25 L 25,-25 C 70,-70 50,-10 25,25 Z" fill="url(#gradPink)" opacity="0.95"/>
+    <path d="M 25,25 C 50,50 70,10 25,-25 L -25,25 C -70,70 -50,10 -25,-25 Z" fill="url(#gradBlue)" opacity="0.95"/>
+    <circle cx="0" cy="0" r="12" fill="url(#gradWhite)"/>
+  </g>
+  <g transform="translate(110, 140) rotate(-15) scale(0.65)" filter="url(#shadow)">
+    <path d="M -40,-20 L -20,20 L 0,-30 L 20,20 L 40,-20 L 30,40 L -30,40 Z" fill="url(#gradYellow)"/>
+    <circle cx="-40" cy="-25" r="6" fill="url(#gradYellow)"/><circle cx="0" cy="-35" r="6" fill="url(#gradYellow)"/><circle cx="40" cy="-25" r="6" fill="url(#gradYellow)"/>
+  </g>
+  <g transform="translate(390, 160) rotate(15) scale(0.6)" filter="url(#shadow)">
+    <rect x="-40" y="-40" width="80" height="80" rx="20" fill="none" stroke="url(#gradWhite)" stroke-width="10"/>
+    <circle cx="0" cy="0" r="18" fill="none" stroke="url(#gradWhite)" stroke-width="8"/><circle cx="22" cy="-22" r="5" fill="url(#gradWhite)"/>
+  </g>
+  <g transform="translate(130, 360) rotate(-20) scale(0.7)" filter="url(#shadow)"><path d="M -45,15 C -20,35 25,35 55,-10 C 25,25 -10,20 -45,15 Z" fill="url(#gradWhite)"/></g>
+  <g transform="translate(370, 350) rotate(-10) scale(0.65)" filter="url(#shadow)">
+    <path d="M -30,-10 Q 0,-30 30,-10" fill="none" stroke="url(#gradPink)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M -20,10 Q 0,-10 20,10" fill="none" stroke="url(#gradPink)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M -10,30 Q 0,15 10,30" fill="none" stroke="url(#gradPink)" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(250, 90) scale(0.5)" filter="url(#shadow)"><rect x="-50" y="-35" width="100" height="70" rx="15" fill="url(#gradPink)"/><polygon points="-10,-15 20,0 -10,15" fill="white"/></g>
+  <g transform="translate(250, 410) scale(0.55)" filter="url(#shadow)"><path d="M -25,20 L 25,20 L 35,-30 L -35,-30 Z" fill="url(#gradBlue)"/><path d="M -40,-30 L 40,-30" stroke="url(#gradBlue)" stroke-width="8" stroke-linecap="round"/><circle cx="0" cy="-5" r="12" fill="white"/></g>
+  <circle cx="90" cy="260" r="3" fill="#f472b6" filter="url(#blurSm)"/><circle cx="410" cy="270" r="4" fill="#60a5fa" filter="url(#blurSm)"/><circle cx="310" cy="180" r="2" fill="#fde047"/><circle cx="190" cy="350" r="2.5" fill="#ffffff" opacity="0.6"/>
+</svg>

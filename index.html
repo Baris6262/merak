@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ─── Temel SEO ─── -->
+<title>Merak | Türkçe Bilgi Yarışması & Trivia Quiz</title>
+<meta name="description" content="Merak et, öğren, kazan! Tarih, bilim, spor, sanat ve daha fazlasında bilgini test et. Günlük quiz, streak sistemi ve 1v1 düello. Ücretsiz oyna!">
+<meta name="keywords" content="merak, bilgi yarışması, türkçe quiz, trivia, bilgi testi, online quiz, tarih soruları, bilim soruları, spor quiz, genel kültür">
+<meta name="author" content="Merak">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://merak.io/">
+
+<!-- ─── Open Graph (WhatsApp, Facebook önizleme) ─── -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://merak.io/">
+<meta property="og:title" content="Merak | Türkçe Bilgi Yarışması">
+<meta property="og:description" content="Merak et, öğren, kazan! Tarih, bilim, spor, sanat ve daha fazlasında bilgini test et. Günlük quiz ve 1v1 düello.">
+<meta property="og:image" content="https://merak.io/icon.svg">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Merak">
+
+<!-- ─── Twitter / X Card ─── -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Merak | Türkçe Bilgi Yarışması">
+<meta name="twitter:description" content="Merak et, öğren, kazan! Türkçe quiz platformu. Ücretsiz oyna.">
+<meta name="twitter:image" content="https://merak.io/icon.svg">
+
+<!-- ─── JSON-LD Schema ─── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Merak",
+  "url": "https://merak.io/",
+  "description": "Türkçe bilgi yarışması ve trivia quiz platformu. Tarih, bilim, spor, sanat, coğrafya, sinema, müzik, edebiyat ve mitoloji kategorilerinde sorular.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Web",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "TRY"
+  },
+  "inLanguage": "tr",
+  "genre": "Quiz, Trivia, Eğitim",
+  "featureList": [
+    "Günlük quiz modu",
+    "Arkadaş meydan okuma",
+    "Günlük kelime oyunu (Tahminle)",
+    "Streak ve rozet sistemi",
+    "12 farklı kategori",
+    "3 zorluk seviyesi"
+  ],
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5",
+    "ratingCount": "1"
+  }
+}
+</script>
+
+<meta name="theme-color" content="#F2EDE3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Merak">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-96.png" sizes="96x96" type="image/png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+
+<style id="economy-styles">
+  .altin-badge { background: rgba(251, 191, 36, 0.15); color: #fbbf24; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(251,191,36,0.3); transition: transform 0.2s; cursor: pointer; margin-bottom: 15px;}
+  .altin-badge:hover { transform: scale(1.05); }
+  .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; margin-top: 15px; }
+  .store-item { background: var(--surface2,#E4DDD0); border: 1px solid rgba(15,14,12,0.18); border-radius: 0; padding: 15px; text-align: center; display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s; }
+  .store-item:hover { transform: none; border-color: var(--accent,#A6361E); }
+  .store-ikon { font-size: 2.5rem; margin-bottom: 5px; }
+  .store-ad { font-size: 0.95rem; font-weight: 600; color: var(--text,#0F0E0C); line-height: 1.2; }
+  .store-btn { background: var(--text,#0F0E0C); color: var(--bg,#F2EDE3); border: none; padding: 8px; border-radius: 0; font-weight: bold; cursor: pointer; width: 100%; transition: opacity 0.2s; }
+  .store-btn:hover { opacity: 0.85; }
+  .store-btn:disabled { background: rgba(15,14,12,0.12); color: var(--text3,#8B8179); cursor: not-allowed; }
+  .store-btn.owned { background: var(--correct,#1E6B45); color: white; }
+  .avatar-cerceve-altin { box-shadow: 0 0 0 4px #fbbf24, 0 0 15px #fbbf24 !important; border: none !important; }
+  .avatar-cerceve-ates { box-shadow: 0 0 0 4px #ef4444, 0 0 20px #f97316 !important; border: none !important; animation: ates-pulse 2s infinite alternate; }
+  .avatar-cerceve-elmas { box-shadow: 0 0 0 4px #06b6d4, 0 0 20px #22d3ee !important; border: none !important; }
+  @keyframes ates-pulse { 0% { box-shadow: 0 0 0 4px #ef4444, 0 0 10px #f97316 !important; } 100% { box-shadow: 0 0 0 4px #f97316, 0 0 25px #ef4444 !important; } }
+
+  .quest-item { background: var(--surface2,#E4DDD0); border: 1px solid rgba(15,14,12,0.18); border-radius: 0; padding: 14px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .quest-icon { font-size: 2rem; flex-shrink: 0; background: rgba(15,14,12,0.05); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 0; }
+  .quest-info { flex: 1; min-width: 0; }
+  .quest-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; color: var(--text,#0F0E0C); }
+  .quest-progress-bar { height: 6px; background: rgba(15,14,12,0.1); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+  .quest-progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+  .quest-status { font-size: 0.7rem; color: var(--text3); font-weight: 600;}
+  .quest-btn { padding: 8px 16px; border-radius: 0; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; font-size: 0.8rem; }
+  .quest-btn.claim { background: var(--correct); color: #fff; box-shadow: none; animation: pulse 1.5s infinite; }
+  .quest-btn.claimed { background: rgba(15,14,12,0.08); color: var(--text3); pointer-events: none; }
+  .quest-btn.working { background: var(--surface); color: var(--text2); pointer-events: none; border: 1px solid var(--border); }
+
+  .media-container { width: 100%; text-align: center; margin-bottom: 16px; border-radius: 0; overflow: hidden; background: rgba(15,14,12,0.05); display: none; }
+  .media-container.show { display: block; animation: fadeSlide 0.3s ease; }
+  .quiz-image { max-width: 100%; max-height: 220px; object-fit: contain; display: block; margin: 0 auto; border-radius: var(--radius-sm); }
+  .quiz-audio { width: 100%; height: 44px; outline: none; border-radius: var(--radius-sm); margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<div id="offlineBanner" class="offline-banner" style="display:none">
+  📡 İnternet bağlantısı yok — çevrimdışı moddasın
+</div>
+
+<div class="particles" id="particles">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<div class="container">
+
+  <!-- ═══════════ GİRİŞ / KAYIT ═══════════ -->
+  <div class="screen" id="authScreen">
+
+    <!-- Üst bar -->
+    <div class="auth-topbar">
+      <span class="auth-tl-logo">merak<span class="ed-red">.io</span></span>
+      <button class="auth-back-lnk" onclick="misafirOyna()">GERİ DÖN</button>
+    </div>
+
+    <!-- Uçuşan harf fayansları -->
+    <div class="auth-tiles" aria-hidden="true">
+      <div class="at at-outline at-1">M</div>
+      <div class="at at-2">E</div>
+      <div class="at at-red at-3">R</div>
+      <div class="at at-outline at-4"><em>i</em></div>
+      <div class="at at-red at-5">A</div>
+      <div class="at at-red at-6">K</div>
+      <div class="at at-7">M</div>
+      <div class="at-soru at-8">?</div>
+    </div>
+
+    <!-- Editorial kart -->
+    <div class="auth-ed-card">
+      <div class="auth-ed-head">
+        <span class="auth-ed-tag">● GİRİŞ</span>
+        <span class="auth-ed-no">№ <span id="edAuthSayi">—</span> · <span id="edAuthDate">—</span></span>
+      </div>
+      <div class="ed-rule-thin" style="margin:10px 0 18px"></div>
+      <h1 class="auth-ed-title">Hoşgeldin.</h1>
+      <p class="auth-ed-sub">Hesabına giriş yap ya da yeni hesap oluştur.</p>
+
+      <button class="auth-ed-google" id="googleBtn" onclick="googleIleGiris()">
+        <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <span id="googleBtnText">Google ile Giriş Yap</span>
+      </button>
+
+      <div class="auth-ed-divider"><span>veya</span></div>
+
+      <div class="auth-ed-tabs">
+        <button class="auth-tab active" onclick="authTabSec('giris', this)">Giriş Yap</button>
+        <button class="auth-tab" onclick="authTabSec('kayit', this)">Kayıt Ol</button>
+      </div>
+
+      <input type="text" id="authIsim" class="auth-ed-input" placeholder="Adın" maxlength="20" style="display:none;" autocomplete="name">
+      <input type="email" id="authEmail" class="auth-ed-input" placeholder="E-posta adresi" autocomplete="email">
+      <input type="password" id="authSifre" class="auth-ed-input" placeholder="Şifre (en az 6 karakter)" autocomplete="current-password">
+
+      <div class="auth-error" id="authError"></div>
+
+      <button class="auth-ed-btn" id="authBtn" onclick="emailIslem()">GİRİŞ YAP →</button>
+
+      <button class="auth-ed-misafir" onclick="misafirOyna()">Misafir olarak devam et →</button>
+    </div>
+
+    <!-- Alt bar -->
+    <div class="auth-botbar">
+      <span>CİLT 01 · GİRİŞ EKRANI</span>
+      <span>HARFLER UÇUŞTURULMUŞ · MELİME SAKLI</span>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ AÇILIŞ - MOOD CHECK ═══════════ -->
+  <div class="screen" id="moodScreen">
+    <div class="glass-card mood-card">
+
+      <div class="mood-brand">
+        <span class="mood-brand-dot"></span>
+        <span class="mood-brand-label">Merak</span>
+        <span class="mood-brand-dot"></span>
+      </div>
+
+      <div class="mood-question">Bugün kendini nasıl<br><em>hissediyorsun?</em></div>
+
+      <div class="mood-emoji-wrap">
+        <div class="mood-emoji" id="moodEmoji">😊</div>
+      </div>
+
+      <div class="mood-value" id="moodValue">5</div>
+
+      <div class="mood-slider-wrap">
+        <div class="slider-labels">
+          <span>😞 Kötü</span><span>Harika 🚀</span>
+        </div>
+        <input type="range" min="1" max="10" value="5" class="mood-slider" id="moodSlider" oninput="moodGuncelle(this.value)">
+      </div>
+
+      <div class="mood-badge" id="moodText">Tam ortası, denge harika bir şey ⚖️</div>
+
+      <div class="isim-wrap">
+        <input type="text" id="isimInput" class="isim-input" placeholder="✏️ Adın ne? (isteğe bağlı)" maxlength="20" autocomplete="off">
+      </div>
+
+      <button class="btn btn-primary btn-shine" onclick="moodOnayla()">
+        BAŞLAYALIM &nbsp;→
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════ ANA SAYFA — EDİTÖRYEL ═══════════ -->
+  <div class="screen" id="homeScreen">
+
+    <!-- ── MASTHEAD ── -->
+    <div class="ed-masthead">
+      <div class="ed-issue">CİLT 01 · SAYI <span id="edSayi">1</span></div>
+      <div class="ed-date" id="edDate"></div>
+    </div>
+    <div class="ed-rule-bold"></div>
+
+    <!-- ── NAV ── -->
+    <nav class="ed-nav">
+      <div class="ed-nav-left">
+        <button class="ed-tab-btn active" onclick="edTabSec('bugun', this)">BUGÜN</button>
+        <button class="ed-tab-btn" onclick="edTabSec('bolumler', this)">BÖLÜMLER</button>
+        <button class="ed-tab-btn" onclick="edTabSec('arsiv', this)">ARŞİV</button>
+      </div>
+      <div class="ed-nav-logo">merak<span class="ed-red">.io</span></div>
+      <div class="ed-nav-right">
+        <span class="ed-streak-tag" id="edStreakTag" style="display:none"></span>
+        <button class="ed-nav-user" id="edNavUser" onclick="miniProfilTikla()">Giriş Yap →</button>
+      </div>
+    </nav>
+    <div class="ed-rule-thin"></div>
+
+    <!-- ══════ TAB: BUGÜN ══════ -->
+    <div class="ed-content" id="edTabBugun">
+
+      <!-- ── İnline Wordle Paneli (hero'nun yerini alır) ── -->
+      <div id="edWordlePanel" style="display:none">
+        <div class="ed-wl-header">
+          <button class="ed-wl-back" onclick="edWordleKapat()">← Geri</button>
+          <div class="ed-wl-baslik">TAHMİNLE <span class="ed-wl-no">№ <span id="wordleGunNo"></span></span></div>
+          <button class="ed-wl-paylas" id="wordlePaylas" onclick="wordlePaylas()" style="display:none">📤 Paylaş</button>
+        </div>
+        <div class="ed-rule-thin"></div>
+        <div class="ed-wl-durum" id="wordleDurum">5 harfli kelimeyi 6 denemede bul!</div>
+        <input id="wordleGizliInput" type="text"
+          autocomplete="off" autocorrect="off" autocapitalize="characters"
+          spellcheck="false" inputmode="text"
+          style="position:fixed;top:-100px;left:0;width:1px;height:1px;opacity:0;border:none;padding:0;font-size:16px;">
+        <div class="ed-wl-body">
+          <div class="wordle-grid" id="wordleGrid"></div>
+          <div class="wordle-tap-hint" id="wordleTapHint" style="display:none"
+            onclick="document.getElementById('wordleGizliInput').focus()">
+            👆 Yazmak için buraya dokun
+          </div>
+          <div class="wordle-klavye" id="wordleKlavye"></div>
+        </div>
+      </div>
+
+      <!-- ── Ana Sayfa İçeriği ── -->
+      <div id="edHomeContent">
+
+      <!-- ════ MASAÜSTÜ (>640px) ════ -->
+      <div class="ed-dsk">
+
+      <!-- Hero: Tahminle -->
+      <div class="ed-hero">
+        <!-- Sol: başlık + CTA -->
+        <div class="ed-hero-left">
+          <div class="ed-hero-meta">№ <span id="edHeroNo">1</span> · BUGÜNÜN BULMACASI</div>
+          <h1 class="ed-h1">Tahmin et,<br><em>5 harfte</em><br>kazan.</h1>
+          <p class="ed-hero-desc">Her gün yeni bir Türkçe kelime. Altı denemen, bir akşam üstü ritüelin.</p>
+          <button class="btn btn-primary btn-shine" onclick="wordleBaslat()">OYNAMAYA BAŞLA →</button>
+        </div>
+        <!-- Orta: Wordle önizleme -->
+        <div class="ed-hero-mid">
+          <div class="ed-wg-head">
+            <span class="ed-wg-lbl">ÖNİZLEME</span>
+            <span class="ed-wg-deneme" id="edWgDeneme"></span>
+          </div>
+          <div class="ed-wg" id="edHeroGrid"></div>
+        </div>
+        <!-- Sağ: istatistikler -->
+        <div class="ed-hero-right">
+          <div class="ed-rstat-sec">BUGÜN</div>
+          <div class="ed-rstat">
+            <div class="ed-rstat-lbl">SENİN SERİN</div>
+            <div class="ed-rstat-val accent" id="edStatStreak">—</div>
+          </div>
+          <div class="ed-rstat-div"></div>
+          <div class="ed-rstat">
+            <div class="ed-rstat-lbl">YARIN İÇİN</div>
+            <div class="ed-rstat-val" id="edStatSure">—</div>
+          </div>
+          <div class="ed-rstat-div"></div>
+          <div class="ed-rstat">
+            <div class="ed-rstat-lbl">TOPLAM SORU</div>
+            <div class="ed-rstat-val" id="edStatToplam">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="ed-rule-thin"></div>
+
+      <!-- Mod seçimi -->
+      <div class="ed-modes" id="edModGrid">
+        <div class="ed-mode selected" data-mod="klasik" onclick="edModSec('klasik', this)">
+          <div class="ed-mode-name">Klasik</div>
+          <div class="ed-mode-info">10 soru · 3 can</div>
+          <div class="ed-mode-tag">Standart yarışma</div>
+        </div>
+        <div class="ed-mode" data-mod="hiz" onclick="edModSec('hiz', this)">
+          <div class="ed-mode-name">Hız</div>
+          <div class="ed-mode-info">60 saniye · sınırsız</div>
+          <div class="ed-mode-tag">En çok doğru</div>
+        </div>
+        <div class="ed-mode" data-mod="sonsuz" onclick="edModSec('sonsuz', this)">
+          <div class="ed-mode-name">Sonsuz</div>
+          <div class="ed-mode-info">Yanılana kadar</div>
+          <div class="ed-mode-tag">Kişisel rekor avı</div>
+        </div>
+        <div class="ed-mode" data-mod="sinav" onclick="edModSec('sinav', this)">
+          <div class="ed-mode-name">Sınav</div>
+          <div class="ed-mode-info">50 soru · zamanlı</div>
+          <div class="ed-mode-tag">Lig için ısınma</div>
+        </div>
+      </div>
+      <div class="ed-rule-thin"></div>
+
+      <!-- Zorluk + tema + başla -->
+      <div class="ed-opts-bar">
+        <div class="ed-diff-row">
+          <button class="ed-diff-btn" data-diff="kolay" onclick="edDiffSec('kolay', this)">🌱 Kolay</button>
+          <button class="ed-diff-btn selected" data-diff="orta" onclick="edDiffSec('orta', this)">⚡ Orta</button>
+          <button class="ed-diff-btn" data-diff="zor" onclick="edDiffSec('zor', this)">🔥 Zor</button>
+        </div>
+        <div class="ed-icon-row">
+          <button class="ed-icon-btn" id="temaMod" onclick="temaDegistir()" title="Tema">🌙</button>
+          <button class="ed-icon-btn" id="sesBtn" onclick="sesDegistir()" title="Ses">🔊</button>
+          <button class="ed-icon-btn tema-renk mavi selected" onclick="aksanDegistir('mavi', this)" title="Mavi"></button>
+          <button class="ed-icon-btn tema-renk mor" onclick="aksanDegistir('mor', this)" title="Mor"></button>
+          <button class="ed-icon-btn tema-renk yesil" onclick="aksanDegistir('yesil', this)" title="Yeşil"></button>
+        </div>
+        <button class="btn btn-primary btn-shine" onclick="baslat()">🚀 QUIZ'E BAŞLA</button>
+      </div>
+      <div class="ed-rule-thin"></div>
+
+      <!-- Kategori tablosu -->
+      <div class="ed-cat-head">
+        <span class="ed-cat-lbl">BÖLÜMLER</span>
+        <button class="ed-cat-all" onclick="edKategoriSec('all')">TÜMÜ →</button>
+      </div>
+      <div class="ed-cat-tbl" id="edCatTbl"></div>
+      <div class="ed-rule-thin"></div>
+
+      <!-- rozetVitrin gizli — güncelleme için ID gerekli -->
+      <div id="rozetVitrin" style="display:none"></div>
+
+      <!-- Meydan okuma (görünürse) -->
+      <div class="challenge-banner" id="challengeBanner" style="display:none;">
+        <div class="challenge-icon">🤺</div>
+        <div class="challenge-info">
+          <div class="challenge-title">Meydan Okuma!</div>
+          <div class="challenge-sub" id="challengeSub">Rakibinin skoru bekleniyor</div>
+        </div>
+        <button class="challenge-accept" onclick="challengeBaslat()">KABUL ET →</button>
+      </div>
+
+      </div><!-- /ed-dsk -->
+
+      <!-- ════ MOBİL (≤640px) ════ -->
+      <div class="ed-mob">
+
+        <!-- Wordle CTA -->
+        <div class="m-block">
+          <div class="m-meta">№ <span id="mEdHeroNo">—</span> · BUGÜNÜN BULMACASI</div>
+          <div class="m-title">Tahmin et, <em>5 harfte</em> kazan.</div>
+          <button class="btn btn-primary m-full-btn" onclick="wordleBaslat()">OYNAMAYA BAŞLA →</button>
+        </div>
+
+        <div class="m-div"></div>
+
+        <!-- Quiz: mod + zorluk -->
+        <div class="m-block">
+          <div class="m-lbl">QUIZ MODU</div>
+          <div class="m-mode-grid">
+            <div class="m-mode selected" data-mod="klasik" onclick="edModSec('klasik',this)">
+              <div class="m-mode-name">Klasik</div>
+              <div class="m-mode-sub">10 soru · 3 can</div>
+            </div>
+            <div class="m-mode" data-mod="hiz" onclick="edModSec('hiz',this)">
+              <div class="m-mode-name">Hız</div>
+              <div class="m-mode-sub">60 sn · sınırsız</div>
+            </div>
+            <div class="m-mode" data-mod="sonsuz" onclick="edModSec('sonsuz',this)">
+              <div class="m-mode-name">Sonsuz</div>
+              <div class="m-mode-sub">Yanılana kadar</div>
+            </div>
+            <div class="m-mode" data-mod="sinav" onclick="edModSec('sinav',this)">
+              <div class="m-mode-name">Sınav</div>
+              <div class="m-mode-sub">50 soru · zamanlı</div>
+            </div>
+          </div>
+          <div class="m-diff-row">
+            <button class="m-diff-btn" data-diff="kolay" onclick="edDiffSec('kolay',this)">🌱 Kolay</button>
+            <button class="m-diff-btn selected" data-diff="orta" onclick="edDiffSec('orta',this)">⚡ Orta</button>
+            <button class="m-diff-btn" data-diff="zor" onclick="edDiffSec('zor',this)">🔥 Zor</button>
+          </div>
+          <button class="btn btn-primary m-full-btn" onclick="baslat()">🚀 QUIZ'E BAŞLA</button>
+        </div>
+
+        <div class="m-div"></div>
+
+        <!-- Kategori -->
+        <div class="m-block">
+          <div class="m-lbl">KATEGORİ</div>
+          <div id="mCatList"></div>
+        </div>
+
+        <div class="m-div"></div>
+
+        <!-- Profil + ayarlar -->
+        <div class="m-block m-bottom">
+          <div class="mini-profil-kart" id="miniProfilKart" onclick="miniProfilTikla()">
+            <div class="mini-profil-av" id="miniProfilAv">?</div>
+            <div class="mini-profil-detay">
+              <div class="mini-profil-isim" id="miniProfilIsim">Giriş Yap</div>
+              <div class="mini-profil-alt" id="miniProfilAlt">Kayıt ol, ilerlemeni takip et</div>
+            </div>
+            <span class="mini-profil-ok">→</span>
+          </div>
+          <div class="m-settings">
+            <button class="ed-icon-btn" id="temaMod" onclick="temaDegistir()" title="Tema">🌙</button>
+            <button class="ed-icon-btn" id="sesBtn" onclick="sesDegistir()" title="Ses">🔊</button>
+            <button class="ed-icon-btn tema-renk mavi selected" onclick="aksanDegistir('mavi',this)"></button>
+            <button class="ed-icon-btn tema-renk mor" onclick="aksanDegistir('mor',this)"></button>
+            <button class="ed-icon-btn tema-renk yesil" onclick="aksanDegistir('yesil',this)"></button>
+            <div class="altin-badge" onclick="fabGit('magaza')">🪙 <span class="altin-miktar">0</span></div>
+          </div>
+          <button id="installBtn" class="install-btn m-full-btn" onclick="uygulamaKur()" style="display:none">📲 Ana Ekrana Ekle</button>
+          <button id="bildirimBtn" class="install-btn m-full-btn" onclick="bildirimIzniIste()" style="display:none">🔔 Günlük Hatırlatıcı</button>
+        </div>
+
+      </div><!-- /ed-mob -->
+
+      </div><!-- /edHomeContent -->
+    </div><!-- /edTabBugun -->
+
+    <!-- ══════ TAB: BÖLÜMLER ══════ -->
+    <div class="ed-content" id="edTabBolumler" style="display:none">
+      <div class="ed-pg-hero">
+        <div class="ed-pg-meta" id="edBolumMeta">12 BÖLÜM</div>
+        <h1 class="ed-pg-title">Bütün <em>bölümler.</em></h1>
+      </div>
+      <div class="ed-rule-bold"></div>
+      <div id="edBolumList"></div>
+    </div>
+
+    <!-- ══════ TAB: ARŞİV ══════ -->
+    <div class="ed-content" id="edTabArsiv" style="display:none">
+      <div class="ed-pg-hero">
+        <div class="ed-pg-meta" id="edArsivMeta">ARŞİV</div>
+        <h1 class="ed-pg-title">Geçen <em>her gün.</em></h1>
+      </div>
+      <div class="ed-rule-bold"></div>
+      <div id="edArsivList"></div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <footer class="site-footer">
+      <div class="footer-top">
+        <span class="footer-brand">merak.io</span>
+        <span class="footer-tagline">merak et, öğren, kazan</span>
+      </div>
+      <div class="footer-links">
+        <button onclick="modalAc('hakkinda')">Hakkında</button>
+        <button onclick="modalAc('gizlilik')">Gizlilik Politikası</button>
+        <button onclick="modalAc('kosullar')">Kullanım Koşulları</button>
+        <button onclick="modalAc('iletisim')">İletişim</button>
+      </div>
+      <div class="footer-copy">
+        © 2026 merak.io — Tüm hakları saklıdır.<br>
+        <span class="footer-legal">merak.io adı, logosu ve içerikleri fikri mülkiyet hukuku kapsamında koruma altındadır. İzinsiz kopyalanması yasaktır.</span>
+      </div>
+    </footer>
+
+    <!-- ── HIDDEN LEGACY (JS uyumu) ── -->
+    <div style="display:none" aria-hidden="true">
+      <div id="userBar" class="user-bar">
+        <button class="user-bar-name" id="userBarName" onclick="profilGoster()"></button>
+        <button class="logout-btn" onclick="cikisYap()">Çıkış →</button>
+      </div>
+      <div id="gunlukStreakBanner" class="streak-banner">
+        <div class="streak-alev">🔥</div>
+        <div class="streak-merkez">
+          <div class="streak-sayi" id="streakSayi">0</div>
+          <div class="streak-label">günlük seri</div>
+        </div>
+        <div class="streak-sag">
+          <div class="streak-record" id="streakRecord">En iyi: 0</div>
+          <div class="streak-durum" id="streakDurum"></div>
+        </div>
+      </div>
+      <div id="modAciklama" class="mod-aciklama"></div>
+      <div id="modRow" class="mod-row">
+        <button class="mod-btn selected" data-mod="klasik" onclick="modSec('klasik', this)"><span class="mod-icon">🎯</span><span class="mod-name">Klasik</span></button>
+        <button class="mod-btn" data-mod="hiz" onclick="modSec('hiz', this)"><span class="mod-icon">⚡</span><span class="mod-name">Hız</span></button>
+        <button class="mod-btn" data-mod="sonsuz" onclick="modSec('sonsuz', this)"><span class="mod-icon">♾️</span><span class="mod-name">Sonsuz</span></button>
+        <button class="mod-btn" data-mod="sinav" onclick="modSec('sinav', this)"><span class="mod-icon">📝</span><span class="mod-name">Sınav</span></button>
+      </div>
+      <div id="difficultyRow" class="difficulty-row">
+        <button class="diff-btn" data-diff="kolay" onclick="zorlukSec('kolay', this)">Kolay</button>
+        <button class="diff-btn selected" data-diff="orta" onclick="zorlukSec('orta', this)">Orta</button>
+        <button class="diff-btn" data-diff="zor" onclick="zorlukSec('zor', this)">Zor</button>
+      </div>
+      <div id="categoryGrid" class="category-grid"></div>
+      <div id="wordleSub"></div>
+      <span id="mobilStreakChip"><span id="mobilStreakSayi"></span></span>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ QUIZ EKRANI ═══════════ -->
+  <div class="screen" id="quizScreen">
+    <div class="glass-card quiz-card">
+      <div class="quiz-header">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="progressFill"></div>
+        </div>
+        <div class="lives-display" id="livesDisplay">
+          <span class="can-icon">❤️</span>
+          <span class="can-icon">❤️</span>
+          <span class="can-icon">❤️</span>
+        </div>
+        <span class="quiz-timer" id="quizTimer">⏱️ 2:00</span>
+      </div>
+
+      <div class="quiz-top-row">
+        <div class="top-left">
+          <span class="question-number" id="questionNumber"></span>
+          <span class="streak-display" id="streakDisplay"></span>
+          <button class="rapor-btn" id="raporBtn" onclick="soruRaporla()" title="Bu soruyu raporla">🚩</button>
+        </div>
+        <div class="joker-buttons">
+          <button class="joker-btn" id="joker5050" onclick="jokerKullan('5050')" title="50:50 - İki yanlışı sil">
+            <span>50:50</span>
+            <small>1 hakkın var</small>
+          </button>
+          <button class="joker-btn" id="jokerTime" onclick="jokerKullan('time')" title="+15 saniye ekle">
+            <span>⏳ +15</span>
+            <small>1 hakkın var</small>
+          </button>
+          <button class="joker-btn hint-btn" id="jokerHint" onclick="jokerKullan('hint')" title="İpucu - İlk harfi göster">
+            <span>💡 İpucu</span>
+            <small>1 hakkın var</small>
+          </button>
+        </div>
+      </div>
+      
+      <div id="mediaContainer" class="media-container"></div>
+      <div class="question-text" id="questionText"></div>
+      
+      <div class="options-list" id="optionsList"></div>
+      
+      <div class="feedback-bar" id="feedbackBar"></div>
+      <div class="aciklama-bar" id="aciklamaBar"></div>
+      <button class="btn btn-primary" id="nextBtn" onclick="sonrakiSoru()">
+        SONRAKİ SORU →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════ PROFİL ═══════════ -->
+  <div class="screen" id="profileScreen">
+    <div class="pr-wrap">
+
+      <!-- Header -->
+      <div class="pr-header">
+        <button class="back-btn" onclick="anaSayfa()">← Geri</button>
+        <div class="pr-header-lbl">— PROFİLİM</div>
+        <button class="pr-share-btn" onclick="profilKartiIndir()">📤</button>
+      </div>
+      <div class="ed-rule-bold"></div>
+
+      <!-- 3-sütun gövde -->
+      <div class="pr-body">
+
+        <!-- SOL: İsim + İstatistikler -->
+        <div class="pr-left">
+          <div class="pr-meta" id="prMeta">ÜYE</div>
+          <div class="pr-name" id="prName">Misafir</div>
+          <div class="pr-sub" id="prSub"></div>
+          <div class="pr-hr"></div>
+          <div class="pr-stats">
+            <div class="pr-stat">
+              <div class="pr-stat-lbl">TOPLAM PUAN</div>
+              <div class="pr-stat-val" id="prTotalPuan">—</div>
+            </div>
+            <div class="pr-stat">
+              <div class="pr-stat-lbl">TOPLAM OYUN</div>
+              <div class="pr-stat-val" id="prTotalOyun">—</div>
+            </div>
+            <div class="pr-stat">
+              <div class="pr-stat-lbl">DOĞRU ORANI</div>
+              <div class="pr-stat-val pr-accent" id="prOran">—</div>
+            </div>
+            <div class="pr-stat">
+              <div class="pr-stat-lbl">EN UZUN SERİ</div>
+              <div class="pr-stat-val" id="prMaxStreak">—</div>
+            </div>
+          </div>
+          <div class="pr-hr"></div>
+          <div class="pr-slbl" style="margin-bottom:8px">KATEGORİ</div>
+          <div id="prKatBars" class="pr-kat-bars"></div>
+        </div>
+
+        <!-- ORTA: Grafikler + Rozetler -->
+        <div class="pr-mid">
+          <div class="pr-slbl">SON 13 HAFTA</div>
+          <div class="pr-barchart" id="prBarChart"></div>
+          <div class="pr-chart-labels">
+            <span>13 hf önce</span>
+            <span>Bu hafta</span>
+          </div>
+          <div class="pr-slbl" style="margin-top:22px">BU HAFTA GÜNLÜK</div>
+          <div class="pr-week" id="prWeek"></div>
+          <div class="pr-slbl" style="margin-top:22px">ROZETLER</div>
+          <div class="pr-rozetler" id="prRozetler"></div>
+          <div class="pr-altin-row">
+            <span class="pr-altin-lbl">MERAK ALTIN</span>
+            <span class="pr-altin-val">🪙 <span class="altin-miktar">0</span></span>
+          </div>
+        </div>
+
+        <!-- SAĞ: Liderlik -->
+        <div class="pr-right">
+          <div class="pr-lb-top">
+            <span class="pr-lb-lig" id="prLigAdi">LİG</span>
+            <span class="pr-lb-hafta" id="prLigHafta"></span>
+          </div>
+          <div class="ed-rule-thin"></div>
+          <div id="prLbList" class="pr-lb-list"></div>
+        </div>
+
+      </div><!-- /pr-body -->
+
+      <!-- Geri uyumluluk: eski ID'ler gizli -->
+      <div style="display:none" aria-hidden="true">
+        <div id="profileAvatar"></div><div id="profileEmail"></div>
+        <div id="profileUnvan"></div><div id="profilBeynSayi"></div>
+        <div id="profilBeynAy"></div><div id="profilStreakSayi"></div>
+        <div id="profilStreakMax"></div><div id="pToplam"></div>
+        <div id="pEnYuksek"></div><div id="pOrtalama"></div>
+        <div id="pToplamDogru"></div><canvas id="beynHaritasi"></canvas>
+        <div id="bhLegend"></div><div id="sezonAdi"></div>
+        <div id="sezonKalan"></div><div id="sezonLider"></div>
+        <div id="sezonBenim"></div><div id="kategoriBars"></div>
+        <div id="profilUnvanlar"></div><div id="profileRozetGrid"></div>
+      </div>
+
+    </div><!-- /pr-wrap -->
+  </div>
+
+  <!-- ═══════════ MERAK DEFTERİ ═══════════ -->
+  <div class="screen" id="defteriScreen">
+    <div class="defteri-screen">
+      <div style="display:flex; align-items:center; gap:12px; padding:16px 0 4px;">
+        <button class="back-btn" onclick="ekranGoster('profileScreen', true)">← Geri</button>
+        <span style="font-weight:800; font-size:1rem;">📔 Merak Defterim</span>
+      </div>
+
+      <div class="defteri-hero">
+        <div class="defteri-sayi" id="defteriToplamSayi">0</div>
+        <div class="defteri-label">öğrenilen şey</div>
+      </div>
+
+      <div class="defteri-mini-row">
+        <div class="defteri-mini-kart">
+          <div class="defteri-mini-sayi" id="defteriBugun">0</div>
+          <div class="defteri-mini-label">Bugün</div>
+        </div>
+        <div class="defteri-mini-kart">
+          <div class="defteri-mini-sayi" id="defteriBuAy">0</div>
+          <div class="defteri-mini-label">Bu Ay</div>
+        </div>
+        <div class="defteri-mini-kart">
+          <div class="defteri-mini-sayi" id="defteriKatSayi">0</div>
+          <div class="defteri-mini-label">Kategori</div>
+        </div>
+      </div>
+
+      <div class="section-label">Son 12 Ay</div>
+      <div class="glass-card" style="padding:16px 12px 8px;">
+        <div class="defteri-aylar" id="defteriAylar"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">En Çok Öğrendiğin Konular</div>
+      <div class="glass-card" style="padding:16px;">
+        <div id="defteriKatList"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:20px;">Kilometre Taşları</div>
+      <div class="defteri-milestone-row" id="defteriMilestones"></div>
+
+      <button class="defteri-wrapped-btn" onclick="defteriWrappedKarti()">🎁 Wrapped Kartı İndir</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ 1v1 DÜELLO ═══════════ -->
+  <div class="screen" id="dvScreen">
+    <div class="glass-card dv-kart">
+      <div class="dv-header">
+        <button class="back-btn" onclick="dvCikis()">← Geri</button>
+        <span class="dv-baslik-text">⚔️ Düello</span>
+        <div style="width:60px"></div>
+      </div>
+      <div id="dvIcerik" class="dv-icerik"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ YANLIŞ KUTUSU ═══════════ -->
+  <div class="screen" id="yanlisScreen">
+    <div class="glass-card yanlis-ekran">
+
+      <div class="yanlis-ekran-header">
+        <button class="back-btn" onclick="ekranGoster('homeScreen', true)">← Geri</button>
+        <div class="yanlis-ekran-baslik">📚 Yanlış Kutum</div>
+        <button class="yanlis-temizle-btn" onclick="yanlisKutusuTemizle()">🗑</button>
+      </div>
+
+      <!-- Özet -->
+      <div class="yanlis-ozet-row">
+        <div class="yanlis-ozet-kart">
+          <div class="yanlis-ozet-sayi" id="yanlisBekleyen">0</div>
+          <div class="yanlis-ozet-label">Bekleyen</div>
+        </div>
+        <div class="yanlis-ozet-kart yanlis-ozet-cozulen">
+          <div class="yanlis-ozet-sayi" id="yanlisCozulen">0</div>
+          <div class="yanlis-ozet-label">Çözülen</div>
+        </div>
+        <div class="yanlis-ozet-kart">
+          <div class="yanlis-ozet-sayi" id="yanlisKategoriSayi">0</div>
+          <div class="yanlis-ozet-label">Kategori</div>
+        </div>
+      </div>
+
+      <!-- Kategori dağılımı -->
+      <div class="section-label">Kategorilere Göre</div>
+      <div class="yanlis-kat-list" id="yanlisKatList"></div>
+
+      <!-- Son eklenen sorular -->
+      <div class="section-label">Son Yanlış Sorular</div>
+      <div class="yanlis-soru-list" id="yanlisSoruList"></div>
+
+      <!-- Butonlar -->
+      <button class="btn btn-primary btn-shine" onclick="yanlisKutusuBaslat()" style="margin-top:8px">
+        🎯 Tekrar Çalış
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ MAĞAZA (DÜKKAN) ═══════════ -->
+  <div class="screen" id="storeScreen">
+    <div class="glass-card">
+      <div class="modal-header" style="margin-bottom:10px;">
+        <button class="back-btn" onclick="ekranGoster('homeScreen', true)">← Geri</button>
+        <div class="section-label" style="margin:0">🛒 Merak Dükkanı</div>
+        <div class="altin-badge" style="margin:0">🪙 <span class="altin-miktar">0</span></div>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.85rem; text-align:center; line-height:1.4;">Oyunlardan kazandığın altınlarla joker veya özel çerçeveler alabilirsin.</p>
+      
+      <div class="store-grid" id="magazaGrid"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ GÖREVLER (DAILY QUESTS) ═══════════ -->
+  <div class="screen" id="questScreen">
+    <div class="glass-card">
+      <div class="modal-header" style="margin-bottom:16px;">
+        <button class="back-btn" onclick="ekranGoster('homeScreen', true)">← Geri</button>
+        <div class="section-label" style="margin:0">📜 Günlük Görevler</div>
+        <div class="altin-badge" style="margin:0">🪙 <span class="altin-miktar">0</span></div>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.85rem; text-align:center; line-height:1.4; margin-bottom:15px;">Görevleri tamamla ve Merak Dükkanı'nda harcamak için altın kazan!</p>
+      <div id="questList"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAHMİNLE — içerik homeScreen içine taşındı ═══════════ -->
+  <div class="screen" id="wordleScreen"></div>
+
+  <!-- ═══════════ FLASHCARD EKRANI ═══════════ -->
+  <div class="screen" id="flashcardScreen">
+    <div class="glass-card fc-card">
+      <div class="modal-header" style="margin-bottom:16px;">
+        <button class="back-btn" onclick="ekranGoster('homeScreen', true)">← Geri</button>
+        <div class="section-label" style="margin:0">🃏 Flashcard</div>
+        <div style="width:60px"></div>
+      </div>
+
+      <div class="progress-row" id="fcProgressRow">
+        <div class="progress-bar"><div class="progress-fill" id="fcProgressFill"></div></div>
+        <div class="progress-text" id="fcProgressText">1 / 10</div>
+      </div>
+
+      <div class="fc-wrapper" id="fcWrapper" onclick="flashcardCevir()">
+        <div class="fc-inner" id="fcInner">
+          <div class="fc-front">
+            <div class="kategori" id="fcKategori">Bilim</div>
+            <div class="soru" id="fcSoru">Yükleniyor...</div>
+            <div class="hint">kartı çevir</div>
+          </div>
+          <div class="fc-back">
+            <div class="cevap-label">Cevap</div>
+            <div class="cevap" id="fcCevap"></div>
+            <div class="aciklama" id="fcAciklama"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row" id="fcBtnRow">
+        <button class="btn btn-bilmiyorum" onclick="flashcardSonraki(false)">✗ Bilmiyorum</button>
+        <button class="btn btn-biliyorum" onclick="flashcardSonraki(true)">✓ Bildim</button>
+      </div>
+
+      <div class="bitis" id="fcBitisEkrani" style="display:none;">
+        <div class="bitis-emoji">🎉</div>
+        <div class="bitis-baslik">Tebrikler!</div>
+        <div class="bitis-alt">Bugünkü kartları tamamladın</div>
+        <div class="bitis-stats">
+          <div class="bitis-stat"><div class="val" id="fcBitisB">0</div><div class="lbl">Bildim</div></div>
+          <div class="bitis-stat"><div class="val" id="fcBitisT">0</div><div class="lbl">Toplam</div></div>
+        </div>
+        <button class="btn btn-primary" onclick="anaSayfa()" style="margin-top:16px">🏠 Ana Sayfaya Dön</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SONUÇ EKRANI ═══════════ -->
+  <div class="screen" id="resultScreen">
+    <div class="glass-card result-card">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="result-rank" id="resultRank"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-text" id="resultText"></div>
+
+      <div class="challenge-result" id="challengeResult" style="display:none;"></div>
+
+      <div class="result-details">
+        <div class="result-stat">
+          <div class="val" style="color:#fbbf24" id="earnedGold">0</div>
+          <div class="stat-label">Altın</div>
+        </div>
+        <div class="result-stat">
+          <div class="val c" id="correctCount">0</div>
+          <div class="stat-label">Doğru</div>
+        </div>
+        <div class="result-stat">
+          <div class="val w" id="wrongCount">0</div>
+          <div class="stat-label">Yanlış</div>
+        </div>
+        <div class="result-stat">
+          <div class="val t" id="timeSpent">0sn</div>
+          <div class="stat-label">Süre</div>
+        </div>
+      </div>
+
+      <div class="rozet-earned-section" id="yeniRozetler" style="display:none;"></div>
+
+      <div class="kategori-insight" id="kategoriInsight" style="display:none;">
+        <span class="insight-label" id="insightLabel"></span>
+        <span class="insight-val" id="insightVal"></span>
+        <span class="insight-sub" id="insightSub"></span>
+      </div>
+
+      <div class="leaderboard">
+        <div class="lb-tabs">
+          <button class="lb-tab active" onclick="lbTabSec('local', this)">🏠 Yerel</button>
+          <button class="lb-tab" onclick="lbTabSec('global', this)">🌍 Global</button>
+        </div>
+        <div id="leaderboardList"></div>
+        <div id="onlineLiderboardList" style="display:none;"></div>
+      </div>
+      
+      <div class="result-buttons">
+        <button class="btn btn-outline" onclick="anaSayfa()">🏠 ANA SAYFA</button>
+        <button class="btn btn-primary" onclick="baslat()">🔄 TEKRAR OYNA</button>
+      </div>
+      <div class="share-row">
+        <button class="share-btn wa-btn" onclick="paylasWhatsApp()">📱 WhatsApp</button>
+        <button class="share-btn x-btn" onclick="paylasTwitter()">✖ X / Twitter</button>
+        <button class="share-btn challenge-btn" onclick="meydanOkuLinki()">🤺 Meydan Oku</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ GERİ SAYIM ═══════════ -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-icerik">
+    <div class="countdown-num" id="countdownNum">3</div>
+    <div class="countdown-kategori" id="countdownKategori"></div>
+  </div>
+</div>
+
+<!-- ═══════════ AVATAR MODALi ═══════════ -->
+<div class="modal-overlay" id="avatarModal" onclick="if(event.target===this)avatarModalKapat()">
+  <div class="modal-kart avatar-modal-kart" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-baslik">Profil Resmi</div>
+      <button class="modal-kapat-btn" onclick="avatarModalKapat()">✕</button>
+    </div>
+    <div class="avatar-modal-icerik">
+      <div class="avatar-onizleme-wrap">
+        <div class="avatar-onizleme" id="avatarOnizleme">?</div>
+      </div>
+      <label class="avatar-foto-btn">
+        📷 Galeriden Fotoğraf Seç
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="avatarFotografYukle(this)">
+      </label>
+      <div class="avatar-ayrac"><span>veya emoji seç</span></div>
+      <div class="avatar-emoji-grid" id="avatarEmojiGrid"></div>
+      <button class="avatar-sil-btn" onclick="avatarSifirla()">🗑 Varsayılana Dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL ═══════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="modalKapat()">
+  <div class="modal-kart" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-baslik" id="modalBaslik"></div>
+      <button class="modal-kapat-btn" onclick="modalKapat()">✕</button>
+    </div>
+    <div class="modal-icerik" id="modalIcerik"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas id="konfetiCanvas"></canvas>
+
+<!-- ═══════════ SOL FAB (FLASHCARD) ═══════════ -->
+<div class="fab-wrap-left" id="fabWrapLeft">
+  <button class="fab-ana-left" onclick="flashcardBaslat()" aria-label="Flashcard">
+    <span class="fab-ana-ikon">🃏</span>
+  </button>
+</div>
+
+<!-- ═══════════ SPEED DIAL FAB ═══════════ -->
+<div class="fab-wrap" id="fabWrap">
+  <div class="fab-menu" id="fabMenu">
+    <button class="fab-item" onclick="fabGit('gorevler')">
+      <span class="fab-item-label">Görevler</span>
+      <span class="fab-item-icon">📜</span>
+    </button>
+    <button class="fab-item" onclick="fabGit('magaza')">
+      <span class="fab-item-label">Mağaza</span>
+      <span class="fab-item-icon">🪙</span>
+    </button>
+    <button class="fab-item" onclick="fabGit('wordle')">
+      <span class="fab-item-label">Tahminle</span>
+      <span class="fab-item-icon">🔤</span>
+    </button>
+    <button class="fab-item" onclick="fabGit('duello')">
+      <span class="fab-item-label">1v1 Düello</span>
+      <span class="fab-item-icon">⚔️</span>
+    </button>
+    <button class="fab-item" onclick="fabGit('yanlis')">
+      <span class="fab-item-label">Yanlış Kutu</span>
+      <span class="fab-item-icon">📦</span>
+    </button>
+    <button class="fab-item" onclick="fabGit('profil')">
+      <span class="fab-item-label">Profil</span>
+      <span class="fab-item-icon">👤</span>
+    </button>
+  </div>
+  <button class="fab-ana" id="fabAna" onclick="fabToggle()" aria-label="Hızlı menü">
+    <span class="fab-ana-ikon" id="fabIkon">✦</span>
+  </button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script src="kelimeler.js"></script>
+<script src="sorular.js"></script>
+<script src="sorular-ek.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
