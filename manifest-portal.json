@@ -1,0 +1,36 @@
+{
+  "name": "merak.io",
+  "short_name": "merak.io",
+  "description": "Maçlar, hava, piyasa ve daha fazlası",
+  "start_url": "/portal.html",
+  "display": "standalone",
+  "background_color": "#ede8dc",
+  "theme_color": "#ede8dc",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

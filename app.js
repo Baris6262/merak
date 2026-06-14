@@ -1,3 +1,49 @@
+﻿// ═══════════════════════════
+// DARK MODE
+// ═══════════════════════════
+(function () {
+  if (localStorage.getItem('bm_dark') === '1') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
+function darkModeToggle() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.classList.add('no-transition');
+  if (dark) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('bm_dark', '0');
+    localStorage.setItem('merakTema', 'acik');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('bm_dark', '1');
+    localStorage.setItem('merakTema', 'karanlik');
+  }
+  _darkBtnGuncelle();
+  requestAnimationFrame(() => document.documentElement.classList.remove('no-transition'));
+}
+
+function _darkBtnGuncelle() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const btn = document.getElementById('navDarkBtn');
+  if (btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+
+document.addEventListener('DOMContentLoaded', _darkBtnGuncelle);
+
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'temaGuncelle') {
+    document.documentElement.classList.add('no-transition');
+    if (e.data.dark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    _darkBtnGuncelle();
+    requestAnimationFrame(() => document.documentElement.classList.remove('no-transition'));
+  }
+});
+
 // ═══════════════════════════
 // ÇEVRİMDIŞI / ONLINE DETECTION
 // ═══════════════════════════
@@ -16,7 +62,7 @@ window.addEventListener('offline', () => { offlineDurumGuncelle(); toastGoster('
 let oyuncuMood = 5;
 let seciliKategori = 'all';
 let seciliZorluk = 'orta';
-let seciliSure = 120;
+let seciliSure = 60;
 let sorular = [];
 let soruIndex = 0;
 let toplamPuan = 0;
@@ -436,25 +482,6 @@ function yanlisKutusuTemizle() {
   ekranGoster('homeScreen', true);
 }
 
-function yanlisKutusuBaslat() {
-  const kutu = JSON.parse(localStorage.getItem('bm_yanlis_kutusu') || '[]');
-  if (kutu.length === 0) { toastGoster('🎉 Yanlış kutun boş! Tüm soruları biliyor musun?', true); return; }
-  yanlisMod = true;
-  sorular = [...kutu].sort(() => Math.random() - 0.5).slice(0, Math.min(10, kutu.length)).map(s => {
-    const dogru = s.o[s.a];
-    const k = [...s.o].sort(() => Math.random() - 0.5);
-    return { q: s.q, o: k, a: k.indexOf(dogru), e: s.e, img: s.img, audio: s.audio };
-  });
-  soruIndex = 0; toplamPuan = 0; dogruSayisi = 0; yanlisSayisi = 0;
-  kalanSure = 120; cevaplandi = false; baslangicZamani = Date.now();
-  streak = 0; maxStreak = 0; canSayisi = 3;
-  jokerleriKur(true);
-  canGuncelle(); streakGuncelle();
-  ekranGoster('quizScreen');
-  soruyuGoster();
-  sayacBaslat();
-}
-
 // ═══════════════════════════
 // PROFİL KARTI (Canvas)
 // ═══════════════════════════
@@ -553,12 +580,15 @@ function sesOynat(tip) {
     };
 
     if (tip === 'dogru') {
-      nota(523, 0, 0.18);
-      nota(659, 0.1, 0.18);
-      nota(784, 0.2, 0.28);
+      const a = new Audio('sounds/dogru.mp3');
+      a.volume = 0.7;
+      a.play().catch(() => {});
+      return;
     } else if (tip === 'yanlis') {
-      nota(220, 0, 0.15, 0.15, 'sawtooth');
-      nota(165, 0.15, 0.25, 0.12, 'sawtooth');
+      const a = new Audio('sounds/yanlis.mp3');
+      a.volume = 0.7;
+      a.play().catch(() => {});
+      return;
     } else if (tip === 'tick') {
       nota(880, 0, 0.07, 0.07);
     } else if (tip === 'bitis') {
@@ -568,15 +598,6 @@ function sesOynat(tip) {
       nota(1047, 0.45, 0.5, 0.25);
     }
   } catch(e) {}
-}
-
-// ═══════════════════════════
-// MEDYA YÖNETİMİ
-// ═══════════════════════════
-function quizMedyaDurdur() {
-  document.querySelectorAll('audio.quiz-audio').forEach(a => {
-    try { a.pause(); a.currentTime = 0; } catch(e) {}
-  });
 }
 
 // ═══════════════════════════
@@ -628,6 +649,12 @@ function authBaslat() {
 
     if (user) {
       kullaniciAdi = user.displayName || user.email?.split('@')[0] || 'Oyuncu';
+      localStorage.setItem('bm_displayName', kullaniciAdi);
+      if (window.STANDALONE === 'giris') {
+        document.body.style.visibility = '';
+        window.parent.postMessage('authBasarili', '*');
+        return;
+      }
       const isimEl = document.getElementById('isimInput');
       if (isimEl) { isimEl.value = kullaniciAdi; isimEl.readOnly = true; }
       document.getElementById('userBarName').textContent = `👤 ${kullaniciAdi}`;
@@ -637,15 +664,20 @@ function authBaslat() {
         yonlendirSonEkrana();
       }
     } else {
+      if (localStorage.getItem('bm_misafir') !== '1') localStorage.removeItem('bm_displayName');
       document.getElementById('userBar')?.classList.remove('show');
       const isimEl = document.getElementById('isimInput');
       if (isimEl) { isimEl.value = ''; isimEl.readOnly = false; }
       miniProfilGuncelle();
+      if (window.STANDALONE === 'giris') return;
       // Misafir kullanıcı yeniledi — son ekrana geri dön
       if (localStorage.getItem('bm_misafir') === '1') {
         if (aktifEkranYok || authAktif) {
           yonlendirSonEkrana();
         }
+      } else if (window.STANDALONE) {
+        // iframe içinde araç/oyun açık — zaten bir şey gösteriliyor, auth ekranı ezmesin
+        if (aktifEkranYok || authAktif) ekranGoster('authScreen');
       } else {
         ekranGoster('authScreen');
       }
@@ -818,6 +850,10 @@ function yonlendirSonEkrana() {
 
 function misafirOyna() {
   localStorage.setItem('bm_misafir', '1');
+  if (window.STANDALONE === 'giris') {
+    window.parent.postMessage('oyunKapat', '*');
+    return;
+  }
   anaEkranBaslat();
 }
 
@@ -852,11 +888,11 @@ document.addEventListener('click', e => {
 });
 
 function fabEkranaGore(ekranId) {
-  const gizli = ['authScreen', 'quizScreen', 'resultScreen', 'storeScreen', 'questScreen'];
   const fab = document.getElementById('fabWrap');
-  if (fab) fab.style.display = gizli.includes(ekranId) ? 'none' : 'flex';
-  const fabLeft = document.getElementById('fabWrapLeft');
-  if (fabLeft) fabLeft.style.display = gizli.includes(ekranId) ? 'none' : 'flex';
+  if (!fab) return;
+  if (window.STANDALONE) { fab.style.display = 'none'; return; }
+  const gizli = ['authScreen', 'quizScreen', 'resultScreen', 'storeScreen', 'questScreen', 'tahminScreen', 'flashcardScreen'];
+  fab.style.display = gizli.includes(ekranId) ? 'none' : 'flex';
 }
 
 // ── Çıkış ─────────────────────────────────────────────────────────────
@@ -885,7 +921,7 @@ function skorGecerliMi(puan, dogru, toplam, zorluk) {
   if (puan < 0 || puan > 12000) return false;
   if (dogru < 0 || dogru > toplam) return false;
   if (toplam < 1 || toplam > 20) return false;
-  if (!['kolay', 'orta', 'zor'].includes(zorluk)) return false;
+  if (typeof zorluk !== 'string' || zorluk.length === 0) return false;
   return true;
 }
 
@@ -1059,56 +1095,15 @@ function konfeti() {
   draw();
 }
 
-// ═══════════════════════════
-// MEYDAN OKUMA (Challenge)
-// ═══════════════════════════
-function challengeSorular() {
-  const rand = mulberry32(challengeSeed);
-  let tumSorular = [];
-  for (const kat of Object.keys(SORU_HAVUZU)) {
-    for (const zorluk of ['kolay', 'orta', 'zor']) {
-      if (SORU_HAVUZU[kat]?.[zorluk]) tumSorular.push(...SORU_HAVUZU[kat][zorluk]);
-    }
-  }
-  for (let i = tumSorular.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [tumSorular[i], tumSorular[j]] = [tumSorular[j], tumSorular[i]];
-  }
-  return tumSorular.slice(0, 10).map(s => {
-    const dogru = s.o[s.a];
-    const opts = [...s.o].sort(() => rand() - 0.5);
-    return { q: s.q, o: opts, a: opts.indexOf(dogru), e: s.e, img: s.img, audio: s.audio };
-  });
-}
-
-function challengeBaslat() {
-  challengeMod = true;
-  sorular = challengeSorular();
-  soruIndex = 0; toplamPuan = 0; dogruSayisi = 0; yanlisSayisi = 0;
-  kalanSure = seciliSure; cevaplandi = false;
-  baslangicZamani = Date.now();
-  streak = 0; maxStreak = 0; canSayisi = 3;
-  jokerleriKur(true);
-  canGuncelle(); streakGuncelle();
-  ekranGoster('quizScreen');
-  soruyuGoster();
-  sayacBaslat();
-}
-
-function challengeBannerGuncelle() {
-  const banner = document.getElementById('challengeBanner');
-  if (!banner) return;
-  if (challengeSeed !== null) {
-    banner.style.display = 'flex';
-    const sub = document.getElementById('challengeSub');
-    if (sub) sub.textContent = `Rakibinin skoru: ${challengeSkor} puan — Geçebilir misin?`;
-  } else {
-    banner.style.display = 'none';
-  }
-}
-
 function urlKontrolEt() {
   const params = new URLSearchParams(window.location.search);
+
+  // Kategori ön seçimi: index.html?kat=tarih
+  const kat = params.get('kat');
+  if (kat && KATEGORI_BILGI[kat]) {
+    seciliKategori = kat;
+  }
+
   const ch = params.get('ch');
   if (!ch) return;
   // Sadece alfanümerik ve tire karakterine izin ver
@@ -1182,7 +1177,8 @@ function modSec(mod, btn) {
 function temaDegistir() {
   document.body.classList.add('no-transition');
   const isLight = document.body.classList.toggle('light-mode');
-  document.getElementById('temaMod').textContent = isLight ? '☀️' : '🌙';
+  const temaBtn = document.getElementById('temaMod');
+  if (temaBtn) temaBtn.textContent = isLight ? '☀️' : '🌙';
   localStorage.setItem('bm_tema', isLight ? 'light' : 'dark');
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('no-transition')));
 }
@@ -1220,93 +1216,6 @@ function mulberry32(seed) {
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
-}
-
-// ═══════════════════════════
-// TARİHTE BUGÜN MODU
-// ═══════════════════════════
-function tarihteBugunGuncelle() {
-  const aylar = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-  const d = new Date();
-  const el = document.getElementById('tbSubText');
-  if (el) el.textContent = `Bugün ${d.getDate()} ${aylar[d.getMonth()]}. Neler yaşandı?`;
-}
-
-function tarihteBugunSorulari() {
-  const aylar = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-  const d = new Date();
-  const gun = d.getDate().toString();
-  const ayIsim = aylar[d.getMonth()];
-  const queryExact = gun + " " + ayIsim;
-  const queryMonth = ayIsim;
-
-  let scored = [];
-  for (const kat of Object.keys(SORU_HAVUZU)) {
-    for (const zorluk of ['kolay', 'orta', 'zor']) {
-      if (!SORU_HAVUZU[kat][zorluk]) continue;
-      for (const s of SORU_HAVUZU[kat][zorluk]) {
-        let score = 0;
-        const text = (s.q + " " + (s.e || "")).toLowerCase();
-        
-        if (text.includes(queryExact.toLowerCase())) score += 100;
-        else if (text.includes(queryMonth.toLowerCase())) score += 15;
-        
-        // YALNIZCA KESİN veya AY EŞLEŞMESİ OLANLARI AL
-        if (score > 0) {
-          score += Math.random(); // Aynı puandakileri karıştırmak için
-          scored.push({ s, score });
-        }
-      }
-    }
-  }
-  
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, 10).map(item => {
-    const s = item.s;
-    const dogru = s.o[s.a];
-    const opts = [...s.o].sort(() => Math.random() - 0.5);
-    return { q: s.q, o: opts, a: opts.indexOf(dogru), e: s.e, img: s.img, audio: s.audio };
-  });
-}
-
-function tarihteBugunBaslat() {
-  let uretilenSorular = tarihteBugunSorulari();
-  
-  if (uretilenSorular.length === 0) {
-    toastGoster('Bugüne dair özel kayıt bulamadık. Senin için rastgele Tarih testi hazırladık! 📜', true);
-    let tarihHavuz = [];
-    for (const z of ['kolay','orta','zor']) {
-      if (SORU_HAVUZU['tarih']?.[z]) tarihHavuz.push(...SORU_HAVUZU['tarih'][z]);
-    }
-    tarihHavuz.sort(() => Math.random() - 0.5);
-    uretilenSorular = tarihHavuz.slice(0, 10).map(s => {
-      const dogru = s.o[s.a];
-      const opts = [...s.o].sort(() => Math.random() - 0.5);
-      return { q: s.q, o: opts, a: opts.indexOf(dogru), e: s.e, img: s.img, audio: s.audio };
-    });
-  } else if (uretilenSorular.length < 10) {
-    toastGoster(`Bugüne dair ${uretilenSorular.length} özel soru bulduk! ⏳`, true);
-  } else {
-    toastGoster('Günün anlamına özel sorular hazır! ⏳', true);
-  }
-
-  tarihteBugunMod = true;
-  sorular = uretilenSorular;
-  soruIndex = 0; toplamPuan = 0; dogruSayisi = 0; yanlisSayisi = 0;
-  kalanSure = seciliSure; cevaplandi = false; baslangicZamani = Date.now();
-  oyundaJokerKullanildi = false; buSoruda5050Kullanildi = false;
-  streak = 0; maxStreak = 0; canSayisi = 3;
-  oyunModu = 'klasik'; 
-  
-  jokerleriKur(true);
-  canGuncelle();
-  
-  geriSayimBaslat('⏳ Tarihte Bugün', () => {
-    streakGuncelle();
-    ekranGoster('quizScreen');
-    soruyuGoster();
-    sayacBaslat();
-  });
 }
 
 // ═══════════════════════════
@@ -1366,16 +1275,22 @@ function kategorileriYukle() {
     return `<span class="cat-icon"><span class="cat-emoji">${bilgi.emoji}</span></span>`;
   }
 
-  let html = `<div class="cat-btn selected" data-cat="all" onclick="kategoriSec('all', this)">
+  let html = `<div class="cat-btn ${seciliKategori === 'all' ? 'selected' : ''}" data-cat="all" onclick="kategoriSec('all', this)">
     <span class="cat-icon"><span class="cat-emoji">🎲</span></span><span class="cat-name">Karışık</span>
     ${statHtml('all')}</div>`;
 
   for (const [key, bilgi] of Object.entries(KATEGORI_BILGI)) {
-    html += `<div class="cat-btn" data-cat="${key}" onclick="kategoriSec('${key}', this)">
+    html += `<div class="cat-btn ${seciliKategori === key ? 'selected' : ''}" data-cat="${key}" onclick="kategoriSec('${key}', this)">
       ${katIkonHtml(bilgi)}<span class="cat-name">${bilgi.isim}</span>
       ${statHtml(key)}</div>`;
   }
   grid.innerHTML = html;
+
+  // URL'den gelen kategori varsa butona kaydır
+  if (seciliKategori !== 'all') {
+    const btn = grid.querySelector(`[data-cat="${seciliKategori}"]`);
+    if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 }
 
 function kategoriSec(kat, el) {
@@ -1417,180 +1332,19 @@ function sureSec(saniye, btn) {
 }
 
 // ═══════════════════════════
-// QUIZ BAŞLAT
+// QUIZ BAŞLAT — fonksiyonlar quiz.js'te
 // ═══════════════════════════
-let freeJokers = { '5050': 1, 'time': 1, 'hint': 1 };
-function jokerleriKur(jokerAktif) {
-  freeJokers = { '5050': 1, 'time': 1, 'hint': 1 };
-  if (typeof envanter === 'undefined') window.envanter = { jokerler: {'5050':0, 'time':0, 'hint':0} };
-  joker5050Hak = freeJokers['5050'] + (envanter.jokerler['5050'] || 0);
-  jokerTimeHak = freeJokers['time'] + (envanter.jokerler['time'] || 0);
-  jokerHintHak = freeJokers['hint'] + (envanter.jokerler['hint'] || 0);
-
-  ['joker5050','jokerTime','jokerHint'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('used');
-    let hak = id === 'joker5050' ? joker5050Hak : id === 'jokerTime' ? jokerTimeHak : jokerHintHak;
-    el.querySelector('small').textContent = jokerAktif ? `${hak} hak kaldı` : 'Kapalı';
-    el.disabled = !jokerAktif;
-    el.style.opacity = jokerAktif ? '1' : '0.4';
-  });
-}
-
-function geriSayimBaslat(kategoriAdi, callback) {
-  const overlay = document.getElementById('countdownOverlay');
-  const numEl   = document.getElementById('countdownNum');
-  const katEl   = document.getElementById('countdownKategori');
-  if (!overlay) { callback(); return; }
-  if (katEl) katEl.textContent = kategoriAdi;
-  overlay.classList.add('show');
-  let sayac = 3;
-  numEl.className = 'countdown-num';
-  numEl.textContent = sayac;
-
-  const tick = setInterval(() => {
-    sayac--;
-    numEl.className = 'countdown-num';
-    void numEl.offsetWidth;
-    if (sayac === 0) {
-      clearInterval(tick);
-      numEl.classList.add('basla');
-      numEl.textContent = 'BAŞLA!';
-      setTimeout(() => {
-        overlay.classList.remove('show');
-        callback();
-      }, 700);
-    } else {
-      numEl.textContent = sayac;
-    }
-  }, 800);
-}
-
-function baslat() {
-  sonsuzMod = (oyunModu === 'sonsuz');
-  hizMod    = (oyunModu === 'hiz');
-  sinavMod  = (oyunModu === 'sinav');
-
-  const modBilgi = MOD_BILGI[oyunModu];
-  const hedefSayi = modBilgi.soruSayisi;
-
-  let havuz = [];
-  if (seciliKategori === 'all') { // Karışık kategori
-    for (const kat of Object.keys(SORU_HAVUZU)) {
-      for (const z of ['kolay', 'orta', 'zor', 'hepsi']) {
-        if (SORU_HAVUZU[kat]?.[z]) havuz.push(...SORU_HAVUZU[kat][z]);
-      }
-    }
-  } else if (seciliKategori === 'bayrak') { // Bayrak için tüm zorlukları tek potada erit
-    const b = SORU_HAVUZU.bayrak;
-    if (b) {
-      if (b.hepsi) havuz.push(...b.hepsi);
-      if (b.kolay) havuz.push(...b.kolay);
-      if (b.orta)  havuz.push(...b.orta);
-      if (b.zor)   havuz.push(...b.zor);
-    }
-  } else if (SORU_HAVUZU[seciliKategori]?.hepsi) { // Tek seviyeli kategori (örn: Bayrak)
-    havuz = SORU_HAVUZU[seciliKategori].hepsi;
-  } else {
-    if (sinavMod) { // Zorluk seviyeli kategorilerde Sınav Modu
-      // Sınav: seçili kategorinin tüm zorlukları
-      for (const z of ['kolay','orta','zor']) {
-        if (SORU_HAVUZU[seciliKategori]?.[z]) havuz.push(...SORU_HAVUZU[seciliKategori][z]);
-      }
-    } else { // Zorluk seviyeli kategorilerde standart mod
-      if (SORU_HAVUZU[seciliKategori]?.[seciliZorluk]) {
-        havuz = SORU_HAVUZU[seciliKategori][seciliZorluk];
-      }
-    }
-  }
-
-  if (havuz.length === 0) {
-    toastGoster('Bu kategori ve zorlukta soru yok!', false);
-    return;
-  }
-
-  havuz = [...havuz].sort(() => Math.random() - 0.5);
-
-  if (sonsuzMod) {
-    // Sonsuz: tüm havuz, karışık
-    sorular = havuz.map(s => {
-      const dogru = s.o[s.a];
-      const k = [...s.o].sort(() => Math.random() - 0.5);
-        return { q: s.q, o: k, a: k.indexOf(dogru), e: s.e, img: s.img, audio: s.audio };
-    });
-  } else {
-    sorular = havuz.slice(0, Math.min(hedefSayi, havuz.length)).map(s => {
-      const dogru = s.o[s.a];
-      const k = [...s.o].sort(() => Math.random() - 0.5);
-        return { q: s.q, o: k, a: k.indexOf(dogru), e: s.e, img: s.img, audio: s.audio };
-    });
-  }
-
-  soruIndex = 0; toplamPuan = 0; dogruSayisi = 0; yanlisSayisi = 0;
-  kalanSure = hizMod ? 5 : seciliSure;
-  cevaplandi = false; baslangicZamani = Date.now();
-  oyundaJokerKullanildi = false;
-  buSoruda5050Kullanildi = false; streak = 0; maxStreak = 0;
-  canSayisi = modBilgi.canVar ? 3 : 99;
-
-  jokerleriKur(modBilgi.jokerVar);
-
-  const livesEl = document.getElementById('livesDisplay');
-  if (livesEl) livesEl.style.display = modBilgi.canVar ? 'flex' : 'none';
-
-  canGuncelle();
-  const katAdi = seciliKategori === 'all' ? 'Karışık' : (KATEGORI_BILGI[seciliKategori]?.isim || seciliKategori);
-  geriSayimBaslat(katAdi, () => {
-    streakGuncelle();
-    ekranGoster('quizScreen');
-    soruyuGoster();
-    if (sonsuzMod) {
-      clearInterval(timerInterval);
-      document.getElementById('quizTimer').textContent = '♾️ Sonsuz';
-      document.getElementById('quizTimer').classList.remove('urgent');
-    } else if (hizMod) {
-      hizSayacBaslat();
-    } else {
-      sayacBaslat();
-    }
-  });
-}
-
-function hizSayacBaslat() {
-  clearInterval(timerInterval);
-  kalanSure = 5;
-  document.getElementById('quizTimer').classList.remove('urgent');
-  timerGuncelle();
-  timerInterval = setInterval(() => {
-    kalanSure--;
-    timerGuncelle();
-    if (kalanSure <= 2) document.getElementById('quizTimer').classList.add('urgent');
-    if (kalanSure <= 0) {
-      clearInterval(timerInterval);
-      if (!cevaplandi) {
-        cevaplandi = true;
-        yanlisSayisi++;
-        streak = 0; canSayisi = Math.max(0, canSayisi - 1);
-        canGuncelle(); streakGuncelle();
-        geriBildirim('⏰ SÜRE DOLDU!', false);
-        sesOynat('yanlis');
-        document.getElementById('nextBtn').classList.add('show');
-        const acEl = document.getElementById('aciklamaBar');
-        const aciklama = sorular[soruIndex]?.e;
-        if (acEl && aciklama) { acEl.textContent = '💡 ' + aciklama; acEl.classList.add('show'); }
-        document.querySelector(`.option-btn[data-idx="${sorular[soruIndex].a}"]`)?.classList.add('correct');
-        document.querySelectorAll('.option-btn').forEach(b => b.classList.add('disabled'));
-      }
-    }
-  }, 1000);
-}
 
 function ekranGoster(id, geri = false) {
+  if (id === 'homeScreen' && window.STANDALONE && document.body.style.visibility !== 'hidden') {
+    window.parent.postMessage('oyunKapat', '*');
+    return;
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-back'));
   const el = document.getElementById(id);
   if (geri) el.classList.add('slide-back');
   el.classList.add('active');
+  window.scrollTo(0, 0);
   const RESTORABLE = ['homeScreen', 'profileScreen', 'yanlisScreen', 'storeScreen', 'questScreen', 'wordleScreen', 'flashcardScreen'];
   if (RESTORABLE.includes(id)) localStorage.setItem('bm_son_ekran', id);
   if (id === 'authScreen') localStorage.removeItem('bm_son_ekran');
@@ -1598,392 +1352,7 @@ function ekranGoster(id, geri = false) {
   fabEkranaGore(id);
 }
 
-// ═══════════════════════════
-// SORU GÖSTER
-// ═══════════════════════════
-function soruyuGoster() {
-  if (soruIndex >= sorular.length) { quizBitir(); return; }
-
-  cevaplandi = false;
-  buSoruda5050Kullanildi = false;
-  const soru = sorular[soruIndex];
-  const harfler = ['A', 'B', 'C', 'D'];
-
-  document.getElementById('questionNumber').textContent = `SORU ${soruIndex + 1} / ${sorular.length}`;
-  document.getElementById('progressFill').style.width = `${((soruIndex + 1) / sorular.length) * 100}%`;
-
-  const qEl = document.getElementById('questionText');
-  const oEl = document.getElementById('optionsList');
-  qEl.classList.remove('question-enter');
-  oEl.classList.remove('question-enter');
-  void qEl.offsetWidth;
-
-  qEl.textContent = soru.q;
-  qEl.classList.add('question-enter');
-
-  oEl.innerHTML = soru.o.map((opt, i) => `
-    <button class="option-btn" onclick="cevapVer(${i}, this)" data-idx="${i}">
-      <span class="opt-letter">${harfler[i]}</span>${opt}
-    </button>
-  `).join('');
-  oEl.classList.add('question-enter');
-
-  const mediaContainer = document.getElementById('mediaContainer');
-  if (mediaContainer) {
-    mediaContainer.innerHTML = '';
-    if (soru.img || soru.audio) {
-      if (soru.img) {
-        // Logoların (özellikle şeffaf/siyah olanların) karanlık modda net görünmesi için beyaz arka plan kartı
-        const imgStyle = seciliKategori === 'logo' ? 'background-color: #ffffff; padding: 15px; border-radius: 12px;' : '';
-        mediaContainer.innerHTML += `<img src="${soru.img}" class="quiz-image" alt="Soru Görseli" style="${imgStyle}">`;
-      }
-      if (soru.audio) mediaContainer.innerHTML += `<audio src="${soru.audio}" class="quiz-audio" controls autoplay></audio>`;
-      mediaContainer.classList.add('show');
-    } else {
-      mediaContainer.classList.remove('show');
-    }
-  }
-
-  document.getElementById('feedbackBar').className = 'feedback-bar';
-  const acEl = document.getElementById('aciklamaBar');
-  if (acEl) { acEl.textContent = ''; acEl.classList.remove('show'); }
-  document.getElementById('nextBtn').classList.remove('show');
-  const raporBtn = document.getElementById('raporBtn');
-  if (raporBtn) { raporBtn.classList.remove('raporlandi'); raporBtn.textContent = '🚩'; }
-
-  const j5050 = document.getElementById('joker5050');
-  if (j5050 && !j5050.disabled && joker5050Hak > 0) {
-    j5050.classList.remove('used');
-    j5050.querySelector('small').textContent = `${joker5050Hak} hak kaldı`;
-  }
-}
-
-// ═══════════════════════════
-// JOKER
-// ═══════════════════════════
-function jokerKullan(tip) {
-  if (cevaplandi) return;
-  oyundaJokerKullanildi = true;
-  
-  if (tip === '5050') {
-    if (joker5050Hak <= 0 || buSoruda5050Kullanildi) return;
-    
-    joker5050Hak--;
-    buSoruda5050Kullanildi = true;
-    if (freeJokers['5050'] > 0) freeJokers['5050']--;
-    else { envanter.jokerler['5050']--; ekonomiKaydet(); }
-    
-    const soru = sorular[soruIndex];
-    const yanlisIndexler = soru.o.map((_, i) => i).filter(i => i !== soru.a);
-    const silinecek = yanlisIndexler.sort(() => Math.random() - 0.5).slice(0, 2);
-    
-    silinecek.forEach(i => {
-      document.querySelector(`.option-btn[data-idx="${i}"]`)?.classList.add('hidden');
-    });
-    
-    document.getElementById('joker5050').classList.add('used');
-    document.getElementById('joker5050').querySelector('small').textContent = joker5050Hak > 0 ? `${joker5050Hak} hak kaldı` : 'Tükendi';
-    toastGoster('🃏 50:50 kullanıldı!', true);
-    
-  } else if (tip === 'time') {
-    if (jokerTimeHak <= 0) return;
-
-    jokerTimeHak--;
-    if (freeJokers['time'] > 0) freeJokers['time']--;
-    else { envanter.jokerler['time']--; ekonomiKaydet(); }
-
-    kalanSure += 15;
-    timerGuncelle();
-
-    const btn = document.getElementById('jokerTime');
-    if (jokerTimeHak <= 0) btn.classList.add('used');
-    btn.querySelector('small').textContent = jokerTimeHak > 0 ? `${jokerTimeHak} hak kaldı` : 'Tükendi';
-    toastGoster('⏳ +15 saniye eklendi!', true);
-
-  } else if (tip === 'hint') {
-    if (jokerHintHak <= 0) return;
-
-    jokerHintHak--;
-    if (freeJokers['hint'] > 0) freeJokers['hint']--;
-    else { envanter.jokerler['hint']--; ekonomiKaydet(); }
-
-    const soru = sorular[soruIndex];
-    const dogruCevap = soru.o[soru.a];
-    const ilkHarf = dogruCevap.charAt(0).toUpperCase();
-    const uzunluk = dogruCevap.length;
-
-    toastGoster(`💡 "${ilkHarf}" ile başlıyor · ${uzunluk} karakter`, true);
-    const btn = document.getElementById('jokerHint');
-    if (jokerHintHak <= 0) btn.classList.add('used');
-    btn.querySelector('small').textContent = jokerHintHak > 0 ? `${jokerHintHak} hak kaldı` : 'Tükendi';
-  }
-}
-
-// ═══════════════════════════
-// CEVAP VER
-// ═══════════════════════════
-function cevapVer(idx, btn) {
-  if (cevaplandi) return;
-  cevaplandi = true;
-  
-  const soru = sorular[soruIndex];
-  const dogru = idx === soru.a;
-  
-  document.querySelectorAll('.option-btn').forEach(b => b.classList.add('disabled'));
-  document.querySelector(`.option-btn[data-idx="${soru.a}"]`)?.classList.add('correct');
-  
-  if (dogru) {
-    streak++;
-    if (streak > maxStreak) maxStreak = streak;
-    btn.classList.add('correct');
-    dogruSayisi++;
-    merakLogKaydet(seciliKategori);
-    const streakBonus = streak >= 4 ? 100 : streak >= 3 ? 60 : streak >= 2 ? 30 : 0;
-    const carpan = hizMod ? 2 : 1;
-    toplamPuan += (100 + Math.floor(kalanSure / (hizMod ? 5 : seciliSure) * 50) + streakBonus) * carpan;
-    streakGuncelle();
-    if (streak >= 2) {
-      geriBildirim(`✅ DOĞRU! 🔥 ${streak} COMBO! +${streakBonus} bonus`, true);
-      toastGoster(`🔥 ${streak} COMBO! +${streakBonus} bonus puan!`, true);
-    } else {
-      geriBildirim('✅ DOĞRU CEVAP!', true);
-      toastGoster('✅ DOĞRU!', true);
-    }
-    sesOynat('dogru');
-    if (yanlisMod) {
-      let kutu = JSON.parse(localStorage.getItem('bm_yanlis_kutusu') || '[]');
-      const onceki = kutu.length;
-      kutu = kutu.filter(k => k.q !== sorular[soruIndex].q);
-      localStorage.setItem('bm_yanlis_kutusu', JSON.stringify(kutu));
-      if (kutu.length < onceki) {
-        const cozulen = parseInt(localStorage.getItem('bm_yanlis_cozulen') || '0') + 1;
-        localStorage.setItem('bm_yanlis_cozulen', cozulen);
-      }
-    }
-  } else {
-    streak = 0;
-    canSayisi--;
-    btn.classList.add('wrong');
-    yanlisSayisi++;
-    canGuncelle();
-    streakGuncelle();
-    geriBildirim('❌ YANLIŞ CEVAP!', false);
-    sesOynat('yanlis');
-    if (!yanlisMod) yanlisSakla(sorular[soruIndex], seciliKategori, seciliZorluk);
-    if (canSayisi <= 0) {
-      toastGoster('💔 Son canını da kaybettin!', false);
-    } else {
-      toastGoster(`❌ YANLIŞ! ❤️ ${canSayisi} can kaldı`, false);
-    }
-  }
-  
-  document.getElementById('nextBtn').classList.add('show');
-
-  const aciklama = sorular[soruIndex]?.e;
-  const acEl = document.getElementById('aciklamaBar');
-  if (acEl) {
-    if (aciklama) {
-      acEl.textContent = '💡 ' + aciklama;
-      acEl.classList.add('show');
-    } else {
-      acEl.classList.remove('show');
-    }
-  }
-}
-
-function geriBildirim(mesaj, dogru) {
-  const fb = document.getElementById('feedbackBar');
-  fb.className = 'feedback-bar show ' + (dogru ? 'correct' : 'wrong');
-  fb.textContent = mesaj;
-}
-
-function sonrakiSoru() {
-  quizMedyaDurdur();
-  if (canSayisi <= 0 && MOD_BILGI[oyunModu]?.canVar) {
-    yanlisSayisi += (sorular.length - soruIndex - 1);
-    quizBitir();
-    return;
-  }
-  soruIndex++;
-  if (soruIndex >= sorular.length) { quizBitir(); return; }
-  soruyuGoster();
-  if (hizMod) hizSayacBaslat();
-}
-
-function streakGuncelle() {
-  const el = document.getElementById('streakDisplay');
-  if (!el) return;
-  if (streak >= 2) {
-    el.textContent = `🔥 x${streak}`;
-    el.classList.add('active');
-    el.classList.remove('pop');
-    void el.offsetWidth;
-    el.classList.add('pop');
-  } else {
-    el.textContent = '';
-    el.classList.remove('active');
-  }
-}
-
-function canGuncelle() {
-  document.querySelectorAll('.can-icon').forEach((can, i) => {
-    if (i < canSayisi) {
-      can.textContent = '❤️';
-      can.classList.remove('kayip');
-    } else if (!can.classList.contains('kayip')) {
-      can.textContent = '🖤';
-      can.classList.add('kayip', 'can-shake');
-      setTimeout(() => can.classList.remove('can-shake'), 400);
-    }
-  });
-}
-
-// ═══════════════════════════
-// SÜRE
-// ═══════════════════════════
-function sayacBaslat() {
-  clearInterval(timerInterval);
-  kalanSure = seciliSure;
-  document.getElementById('quizTimer').classList.remove('urgent');
-  timerGuncelle();
-  
-  timerInterval = setInterval(() => {
-    kalanSure--;
-    timerGuncelle();
-    if (kalanSure <= 20) document.getElementById('quizTimer').classList.add('urgent');
-    if (kalanSure <= 5 && kalanSure > 0) sesOynat('tick');
-    if (kalanSure <= 0) {
-      clearInterval(timerInterval);
-      yanlisSayisi += (sorular.length - soruIndex);
-      quizBitir();
-    }
-  }, 1000);
-}
-
-function timerGuncelle() {
-  const dk = Math.floor(kalanSure / 60);
-  const sn = kalanSure % 60;
-  document.getElementById('quizTimer').textContent = `⏱️ ${dk}:${sn.toString().padStart(2, '0')}`;
-}
-
-// ═══════════════════════════
-// SONUÇ
-// ═══════════════════════════
-function quizBitir() {
-  quizMedyaDurdur();
-  clearInterval(timerInterval);
-  sesOynat('bitis');
-  const gecenSure = Math.floor((Date.now() - baslangicZamani) / 1000);
-
-  beynPuaniGuncelle(toplamPuan);
-  yanlisMod = false;
-
-  kategoriStatGuncelle();
-  unvanKontrolEt();
-  const isChallenge = challengeMod;
-  const rakipSkor = challengeSkor;
-  const yeniRozetler = rozetleriKontrolEt(gecenSure);
-
-  if (challengeMod) { challengeMod = false; }
-  if (tarihteBugunMod) { tarihteBugunMod = false; }
-  streakGuncelle();
-  
-  let kazanilanAltin = Math.floor(toplamPuan / 20);
-  if (hizMod) kazanilanAltin = Math.floor(kazanilanAltin * 1.5);
-  altinKazan(kazanilanAltin);
-  const egEl = document.getElementById('earnedGold');
-  if (egEl) egEl.textContent = '+' + kazanilanAltin;
-
-  // GÖREV İLERLEMELERİ
-  gorevIlerleme('oyun_' + oyunModu, 1);
-  if (seciliKategori !== 'all') gorevIlerleme('dogru_' + seciliKategori, dogruSayisi);
-  if (!oyundaJokerKullanildi && dogruSayisi >= 7) gorevIlerleme('jokersiz_oyun', 1);
-  if (maxStreak >= 5) gorevIlerleme('oyun_streak', maxStreak, true);
-  if (dogruSayisi >= 10) gorevIlerleme('oyun_10_dogru', 1);
-
-  let emoji, text;
-  if (dogruSayisi >= 9) { emoji = '🏆'; text = 'MÜKEMMEL! Sen bir dahisin!'; }
-  else if (dogruSayisi >= 7) { emoji = '🌟'; text = 'Harika! Bilgine güveniyorsun!'; }
-  else if (dogruSayisi >= 5) { emoji = '👍'; text = 'Fena değil, geliştirilebilir.'; }
-  else if (dogruSayisi >= 3) { emoji = '📚'; text = 'Biraz daha çalışmalısın.'; }
-  else { emoji = '😅'; text = 'Genel kültür şart! Pes etme!'; }
-
-  const pct = sorular.length > 0 ? dogruSayisi / sorular.length : 0;
-  const rankMap = pct >= 1 ? ['S','s'] : pct >= 0.8 ? ['A','a'] : pct >= 0.6 ? ['B','b'] : pct >= 0.4 ? ['C','c'] : ['D','d'];
-  const rankEl = document.getElementById('resultRank');
-  if (rankEl) { rankEl.textContent = rankMap[0]; rankEl.className = 'result-rank ' + rankMap[1]; }
-
-  document.getElementById('resultEmoji').textContent = emoji;
-  document.getElementById('resultScore').textContent = '0 PUAN';
-  document.getElementById('resultText').textContent = text;
-  document.getElementById('correctCount').textContent = dogruSayisi;
-  document.getElementById('wrongCount').textContent = yanlisSayisi;
-  document.getElementById('timeSpent').textContent = gecenSure + 'sn';
-
-  // Challenge sonucu
-  const challengeEl = document.getElementById('challengeResult');
-  if (challengeEl) {
-    if (isChallenge) {
-      const fark = toplamPuan - rakipSkor;
-      challengeEl.style.display = 'block';
-      challengeEl.className = 'challenge-result ' + (fark >= 0 ? 'win' : 'lose');
-      if (fark > 0) challengeEl.innerHTML = `🏆 Rakibini <strong>${fark} puanla</strong> geçtin!`;
-      else if (fark === 0) challengeEl.innerHTML = `🤝 Berabere! İkiniz de <strong>${toplamPuan}</strong> puan!`;
-      else challengeEl.innerHTML = `😤 Rakibin seni <strong>${Math.abs(fark)} puanla</strong> geçti!`;
-    } else {
-      challengeEl.style.display = 'none';
-    }
-  }
-
-  // Yeni rozetler
-  const rozetEl = document.getElementById('yeniRozetler');
-  if (rozetEl) {
-    if (yeniRozetler.length > 0) {
-      rozetEl.style.display = 'block';
-      rozetEl.innerHTML = '<div class="rozet-earned-title">🎉 Yeni Rozet Kazandın!</div>' +
-        yeniRozetler.map(id => {
-          const r = ROZETLER[id];
-          return `<div class="rozet-earned-item"><span>${r.icon}</span><div><strong>${r.isim}</strong><small>${r.aciklama}</small></div></div>`;
-        }).join('');
-      rozetVitrinGuncelle();
-    } else {
-      rozetEl.style.display = 'none';
-    }
-  }
-
-  // Leaderboard tab'ı sıfırla
-  document.querySelectorAll('.lb-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-  document.getElementById('leaderboardList').style.display = 'block';
-  const globalEl = document.getElementById('onlineLiderboardList');
-  if (globalEl) { globalEl.style.display = 'none'; globalEl.innerHTML = ''; }
-
-  liderlikKaydet();
-  liderlikGoster();
-  ekranGoster('resultScreen');
-
-
-  // Firebase'e kaydet (arka planda, hata olursa sessizce)
-  firebaseEkle({
-    isim: kullaniciAdi,
-    puan: toplamPuan,
-    dogru: dogruSayisi,
-    toplam: sorular.length,
-    zorluk: seciliZorluk,
-    kategori: seciliKategori
-  });
-  sezonSkoru(toplamPuan, dogruSayisi, sorular.length);
-
-  // Backend'in bildirimi kimlere atacağını bilmesi için son oyun tarihini kaydedelim
-  if (currentUser && db) {
-    db.collection('users').doc(currentUser.uid).set({ sonOyunTarihi: new Date().toDateString() }, { merge: true }).catch(()=>{});
-  }
-
-  setTimeout(() => {
-    sayacAnimasyonu('resultScore', toplamPuan, 1200, ' PUAN');
-    kategoriInsightGoster();
-    if (dogruSayisi >= 7) konfeti();
-  }, 250);
-}
+// SORU GÖSTER, JOKER, CEVAP VER, SÜRE, SONUÇ — quiz.js'te
 
 // ═══════════════════════════
 // LİDERLİK
@@ -2009,15 +1378,18 @@ function liderlikGoster() {
   if (!container) return;
   
   container.innerHTML = lb.slice(0, 10).map((e, i) => {
-    let ikon = `#${i+1}`;
-    if (i===0) ikon='🥇';
-    else if (i===1) ikon='🥈';
-    else if (i===2) ikon='🥉';
-
-    return `<div class="lb-row">
+    const ikon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
+    const isBen = e.isim === kullaniciAdi;
+    const avatarHarf = (e.isim || '?')[0].toUpperCase();
+    return `<div class="lb-row${isBen ? ' lb-row-ben' : ''}">
       <span class="lb-rank">${ikon}</span>
-      <div class="lb-info"><div class="lb-name">${htmlKacis(e.isim)}</div><div class="lb-meta">${parseInt(e.dogru)||0}/${parseInt(e.toplam)||0} · ${htmlKacis(e.zorluk)} · ${htmlKacis(e.tarih)}</div></div>
-      <span class="lb-score">${parseInt(e.puan)||0} puan</span></div>`;
+      <div class="lb-avatar-circle">${avatarHarf}</div>
+      <div class="lb-info">
+        <div class="lb-name">${htmlKacis(e.isim)}${isBen ? ' <span class="lb-sen">· Sen</span>' : ''}</div>
+        <div class="lb-meta">${parseInt(e.dogru)||0}/${parseInt(e.toplam)||0} · ${htmlKacis(e.zorluk)} · ${htmlKacis(e.tarih)}</div>
+      </div>
+      <span class="lb-score">${parseInt(e.puan)||0}</span>
+    </div>`;
   }).join('') || '<div style="text-align:center;color:var(--text3);padding:10px;font-size:0.8rem">Henüz skor yok</div>';
 }
 
@@ -2026,6 +1398,7 @@ function liderlikGoster() {
 // ═══════════════════════════
 function anaSayfa() {
   quizMedyaDurdur();
+  if (window.STANDALONE) { window.parent.postMessage('oyunKapat', '*'); return; }
   ekranGoster('homeScreen', true);
   kategorileriYukle();
   liderlikGoster();
@@ -2156,8 +1529,36 @@ function modalKapat() {
   document.body.style.overflow = '';
 }
 
+let klavyeSeciliIdx = -1;
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') modalKapat();
+  if (e.key === 'Escape') { modalKapat(); return; }
+
+  if (document.getElementById('quizScreen')?.classList.contains('active')) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const keyMap = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+    if (e.key in keyMap && !cevaplandi) {
+      const idx = keyMap[e.key];
+      const btns = document.querySelectorAll('#optionsList .option-btn');
+      const btn = btns[idx];
+      if (!btn || btn.classList.contains('disabled')) return;
+      btns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      klavyeSeciliIdx = idx;
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      const nextBtn = document.getElementById('nextBtn');
+      if (nextBtn?.classList.contains('show')) { nextBtnTikla(); return; }
+      if (!cevaplandi && klavyeSeciliIdx >= 0) {
+        const btn = document.querySelectorAll('#optionsList .option-btn')[klavyeSeciliIdx];
+        if (btn && !btn.classList.contains('disabled')) btn.click();
+      }
+      return;
+    }
+  }
 });
 
 
@@ -2330,6 +1731,11 @@ function uygulamaKur() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
+    // Yeni SW devreye girince sayfayı otomatik yenile
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing && !window.STANDALONE) { refreshing = true; window.location.reload(); }
+    });
   });
 }
 
@@ -2462,9 +1868,7 @@ function dvSorularUret(seed) {
   const rand = mulberry32(seed);
   let tumSorular = [];
   for (const kat of Object.keys(SORU_HAVUZU)) {
-    for (const zorluk of ['kolay', 'orta', 'zor']) {
-      if (SORU_HAVUZU[kat]?.[zorluk]) tumSorular.push(...SORU_HAVUZU[kat][zorluk]);
-    }
+    if (SORU_HAVUZU[kat]?.hepsi) tumSorular.push(...SORU_HAVUZU[kat].hepsi);
   }
   for (let i = tumSorular.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -2879,6 +2283,54 @@ function avatarUygula(el) {
   }
 }
 
+function prAvatarTikla() {
+  document.getElementById('prFotoInput')?.click();
+}
+
+function prFotoSec(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 400;
+      const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      localStorage.setItem('bm_avatar', JSON.stringify({ tip: 'foto', deger: dataUrl }));
+      prAvatarGuncelle();
+      toastGoster('Profil fotoğrafı güncellendi ✓');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function prAvatarGuncelle() {
+  const kayit = JSON.parse(localStorage.getItem('bm_avatar') || 'null');
+  const fotoEl = document.getElementById('prAvatarFoto');
+  const harfEl = document.getElementById('prAvatarHarf');
+  if (!fotoEl || !harfEl) return;
+  if (kayit?.tip === 'foto' && kayit.deger) {
+    fotoEl.src = kayit.deger;
+    fotoEl.style.display = 'block';
+    harfEl.style.display = 'none';
+  } else if (kayit?.tip === 'emoji') {
+    fotoEl.style.display = 'none';
+    harfEl.style.display = '';
+    harfEl.textContent = kayit.deger;
+  } else {
+    fotoEl.style.display = 'none';
+    harfEl.style.display = '';
+  }
+}
+
 function avatarDegistirAc() {
   if (!currentUser) { toastGoster('Profil resmi değiştirmek için giriş yap'); return; }
   const onizleme = document.getElementById('avatarOnizleme');
@@ -2949,25 +2401,44 @@ function profilGoster() {
   const prName = document.getElementById('prName');
   if (prName) prName.textContent = ad;
 
+  // Avatar baş harfi (mobil)
+  const prAvatarHarf = document.getElementById('prAvatarHarf');
+  if (prAvatarHarf) prAvatarHarf.textContent = (ad[0] || 'M').toUpperCase();
+  prAvatarGuncelle();
+
   // Meta: "ÜYE · X AY" — kayıt tarihinden hesapla
   const prMeta = document.getElementById('prMeta');
+  let kayitAy = 1;
   if (prMeta) {
     const kayitTarih = localStorage.getItem('bm_kayit_tarih');
     if (kayitTarih) {
-      const ay = Math.max(1, Math.floor((Date.now() - parseInt(kayitTarih)) / (30 * 86400000)));
-      prMeta.textContent = `ÜYE · ${ay} AY`;
+      kayitAy = Math.max(1, Math.floor((Date.now() - parseInt(kayitTarih)) / (30 * 86400000)));
+      prMeta.textContent = `ÜYE · ${kayitAy} AY`;
     } else {
       localStorage.setItem('bm_kayit_tarih', Date.now());
       prMeta.textContent = 'ÜYE · 1 AY';
     }
   }
 
-  // Alt bilgi
+  // Mobil alt başlık: "Üye · N ay · Portal"
+  const prSubMeta = document.getElementById('prSubMeta');
+  if (prSubMeta) prSubMeta.textContent = `Üye · ${kayitAy} ay · Portal`;
+
+  // Alt bilgi (desktop)
   const prSub = document.getElementById('prSub');
-  if (prSub) {
-    const streakData = JSON.parse(localStorage.getItem('bm_streak') || '{}');
-    const seri = streakData.mevcut || 0;
-    prSub.textContent = seri > 0 ? `🔥 ${seri} günlük seri aktif` : 'merak.io oyuncusu';
+  const streakDataSub = JSON.parse(localStorage.getItem('bm_streak') || '{}');
+  const seriSub = streakDataSub.mevcut || 0;
+  if (prSub) prSub.textContent = seriSub > 0 ? `🔥 ${seriSub} günlük seri aktif` : 'merak.io oyuncusu';
+
+  // Seri pill (mobil)
+  const prStreakPill = document.getElementById('prStreakPill');
+  if (prStreakPill) {
+    if (seriSub > 0) {
+      prStreakPill.textContent = `🔥 ${seriSub} günlük seri aktif`;
+      prStreakPill.style.display = '';
+    } else {
+      prStreakPill.style.display = 'none';
+    }
   }
 
   // İstatistikler
@@ -3004,6 +2475,25 @@ function profilGoster() {
   if (oranEl) oranEl.textContent = oran > 0 ? `%${oran}` : '—';
   const maxSt = document.getElementById('prMaxStreak');
   if (maxSt) maxSt.textContent = (streakData2.maksimum || 0) > 0 ? `${streakData2.maksimum} gün` : '—';
+
+  // Bu hafta puanı
+  const prBuHafta = document.getElementById('prBuHafta');
+  if (prBuHafta) {
+    const now = new Date();
+    const thisWeek = haftaNo(now);
+    const thisYear = now.getFullYear();
+    const buHaftaPuan = lb.reduce((s, e) => {
+      const d = new Date(e.tarih);
+      return (d.getFullYear() === thisYear && haftaNo(d) === thisWeek) ? s + (e.puan || 0) : s;
+    }, 0);
+    prBuHafta.textContent = buHaftaPuan > 0 ? buHaftaPuan.toLocaleString('tr-TR') : '—';
+  }
+
+  // Hint metinleri: veri varsa gizle
+  const puanHint = document.getElementById('prTotalPuanHint');
+  const oyunHint = document.getElementById('prTotalOyunHint');
+  if (puanHint) puanHint.style.display = bp.toplam > 0 ? 'none' : '';
+  if (oyunHint) oyunHint.style.display = lb.length > 0 ? 'none' : '';
 
   // Kategori barları
   prKatBarsCiz(katStats);
@@ -3347,1017 +2837,6 @@ function defteriWrappedKarti() {
 }
 
 // ═══════════════════════════
-// KELİME BUL (WORDLE)
-// ═══════════════════════════
-const WORDLE_KLAVYE = [
-  ['E','R','T','Y','U','İ','O','P','Ğ','Ü'],
-  ['A','S','D','F','G','H','J','K','L','Ş','I'],
-  ['GİR','Z','C','V','B','N','M','Ö','Ç','⌫']
-];
-
-let wKelime = '';
-let wTahminler = [];
-let wMevcut = '';
-let wBitti = false;
-
-function wordleGunNo() {
-  return Math.floor((Date.now() - new Date('2024-01-01')) / 86400000);
-}
-
-function bugunkunKelime() {
-  const now = new Date();
-  const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-  const rand = mulberry32(seed);
-  return KELIMELER[Math.floor(rand() * KELIMELER.length)];
-}
-
-function wordleBaslat() {
-  wKelime = bugunkunKelime();
-  const kayit = wordleKayitGetir();
-  wTahminler = kayit ? [...kayit.tahminler] : [];
-  wMevcut = '';
-  wBitti = kayit ? kayit.bitti : false;
-
-  document.getElementById('wordleGunNo').textContent = wordleGunNo();
-  document.getElementById('wordleDurum').textContent = '5 harfli kelimeyi 6 denemede bul!';
-  document.getElementById('wordleDurum').style.color = '';
-  document.getElementById('wordlePaylas').style.display = 'none';
-
-  // Daima inline editorial modda aç
-  edWordleAc();
-
-  wordleGridOlustur();
-  wordleKlavyeOlustur();
-  if ('ontouchstart' in window) {
-    setTimeout(() => document.getElementById('wordleGizliInput')?.focus(), 350);
-  }
-
-  wTahminler.forEach((t, i) => wordleSatirGoster(t, i, true));
-  if (wBitti) {
-    const kazandi = wTahminler[wTahminler.length - 1] === wKelime;
-    wordleBitisGoster(kazandi, true);
-  }
-  wordleBannerGuncelle();
-}
-
-function edWordleAc() {
-  if (!document.getElementById('homeScreen').classList.contains('active')) {
-    ekranGoster('homeScreen');
-    edBaslat();
-  }
-  const bugunBtn = document.querySelector('.ed-tab-btn');
-  edTabSec('bugun', bugunBtn);
-  localStorage.setItem('bm_son_ekran', 'wordleScreen');
-
-  const home = document.getElementById('edHomeContent');
-  const panel = document.getElementById('edWordlePanel');
-
-  home.classList.remove('ed-anim-in');
-  home.classList.add('ed-anim-out');
-
-  setTimeout(() => {
-    home.style.display = 'none';
-    home.classList.remove('ed-anim-out');
-
-    panel.style.display = '';
-    panel.classList.remove('ed-anim-in', 'ed-anim-out');
-    panel.offsetHeight; // reflow — animasyonu başlangıç karesinden başlat
-    panel.classList.add('ed-anim-in');
-  }, 190);
-}
-
-function edWordleKapat() {
-  localStorage.setItem('bm_son_ekran', 'homeScreen');
-  const home = document.getElementById('edHomeContent');
-  const panel = document.getElementById('edWordlePanel');
-
-  panel.classList.remove('ed-anim-in');
-  panel.classList.add('ed-anim-out');
-
-  setTimeout(() => {
-    panel.style.display = 'none';
-    panel.classList.remove('ed-anim-out');
-
-    home.style.display = '';
-    home.classList.remove('ed-anim-in', 'ed-anim-out');
-    home.offsetHeight; // reflow
-    home.classList.add('ed-anim-in');
-
-    edHeroGridDoldur();
-    edStreakGuncelle();
-  }, 190);
-}
-
-function wordleGridOlustur() {
-  const grid = document.getElementById('wordleGrid');
-  grid.innerHTML = Array.from({length: 6}, (_, i) =>
-    `<div class="wordle-satir" id="wSatir${i}">${
-      Array.from({length: 5}, (_, j) => `<div class="wordle-hucre" id="wH${i}${j}"></div>`).join('')
-    }</div>`
-  ).join('');
-}
-
-function wordleKlavyeOlustur() {
-  document.getElementById('wordleKlavye').innerHTML = WORDLE_KLAVYE.map(satir =>
-    `<div class="klavye-satir">${satir.map(t =>
-      `<button class="klavye-tus${t==='GİR'||t==='⌫'?' klavye-tus-genis':''}" data-tus="${t}" onclick="wTus('${t}')">${t}</button>`
-    ).join('')}</div>`
-  ).join('');
-}
-
-function wTus(tus) {
-  if (wBitti) return;
-  if (tus === '⌫') { wMevcut = wMevcut.slice(0, -1); wGuncelle(); return; }
-  if (tus === 'GİR') { wGonder(); return; }
-  if (wMevcut.length < 5) { wMevcut += tus; wGuncelle(); }
-}
-
-function wGuncelle() {
-  const satirIdx = wTahminler.length;
-  for (let j = 0; j < 5; j++) {
-    const h = document.getElementById(`wH${satirIdx}${j}`);
-    if (!h) return;
-    h.textContent = wMevcut[j] || '';
-    h.classList.toggle('dolu', !!wMevcut[j]);
-  }
-}
-
-function wGonder() {
-  if (wMevcut.length !== 5) {
-    const satir = document.getElementById(`wSatir${wTahminler.length}`);
-    satir?.classList.add('salla');
-    setTimeout(() => satir?.classList.remove('salla'), 450);
-    toastGoster('5 harf girmelisin!', false);
-    return;
-  }
-  const satirIdx = wTahminler.length;
-  const tahmin = wMevcut;
-  wTahminler.push(tahmin);
-  wMevcut = '';
-
-  wordleSatirGoster(tahmin, satirIdx, false);
-
-  const kazandi = tahmin === wKelime;
-  const bitti = kazandi || wTahminler.length >= 6;
-  const animSure = 5 * 120 + 250;
-
-  setTimeout(() => {
-    if (bitti) {
-      wBitti = true;
-      wordleKaydet();
-      wordleBitisGoster(kazandi, false);
-      document.getElementById('wordlePaylas').style.display = 'flex';
-      wordleBannerGuncelle();
-    } else {
-      wordleKaydet();
-    }
-  }, animSure);
-}
-
-function tahminRenkle(tahmin, cevap) {
-  const sonuc = ['gri','gri','gri','gri','gri'];
-  const cv = cevap.split(''), th = tahmin.split('');
-  for (let i = 0; i < 5; i++) {
-    if (th[i] === cv[i]) { sonuc[i] = 'yesil'; cv[i] = null; th[i] = null; }
-  }
-  for (let i = 0; i < 5; i++) {
-    if (th[i] === null) continue;
-    const idx = cv.indexOf(th[i]);
-    if (idx !== -1) { sonuc[i] = 'sari'; cv[idx] = null; }
-  }
-  return sonuc;
-}
-
-function wordleSatirGoster(tahmin, satirIdx, anlik) {
-  const renkler = tahminRenkle(tahmin, wKelime);
-  const STAGGER = anlik ? 0 : 120;
-  const FLIP = anlik ? 0 : 150;
-
-  for (let j = 0; j < 5; j++) {
-    const h = document.getElementById(`wH${satirIdx}${j}`);
-    if (!h) continue;
-    h.textContent = tahmin[j];
-    h.classList.remove('dolu');
-
-    if (anlik) {
-      h.classList.add(`w-${renkler[j]}`);
-      wKlavyeGuncelle(tahmin[j], renkler[j]);
-    } else {
-      setTimeout(() => {
-        h.style.transition = `transform ${FLIP}ms ease-in`;
-        h.style.transform = 'rotateX(-90deg)';
-        setTimeout(() => {
-          h.classList.add(`w-${renkler[j]}`);
-          h.style.transition = `transform ${FLIP}ms ease-out`;
-          h.style.transform = 'rotateX(0deg)';
-          setTimeout(() => { h.style.transition = ''; h.style.transform = ''; }, FLIP);
-          wKlavyeGuncelle(tahmin[j], renkler[j]);
-        }, FLIP);
-      }, j * STAGGER);
-    }
-  }
-}
-
-function wKlavyeGuncelle(harf, renk) {
-  const el = document.querySelector(`.klavye-tus[data-tus="${harf}"]`);
-  if (!el) return;
-  const mevcut = el.dataset.durum;
-  if (mevcut === 'yesil') return;
-  if (mevcut === 'sari' && renk !== 'yesil') return;
-  el.dataset.durum = renk;
-}
-
-function wordleBitisGoster(kazandi, anlik) {
-  const durum = document.getElementById('wordleDurum');
-  if (kazandi) {
-    if (!anlik) gorevIlerleme('wordle_oyna', 1);
-    const mesajlar = ['Olağanüstü! 🏆','Mükemmel! 🌟','Harika! 👏','Güzel! 😊','İyi iş! 👍','Sonuna kadar! 😅'];
-    durum.textContent = mesajlar[Math.min(wTahminler.length - 1, 5)];
-    durum.style.color = 'var(--correct)';
-    if (!anlik && wTahminler.length <= 4) {
-      setTimeout(() => konfeti(), 200);
-      // Kazanma zıplama animasyonu
-      setTimeout(() => {
-        for (let j = 0; j < 5; j++) {
-          setTimeout(() => {
-            document.getElementById(`wH${wTahminler.length - 1}${j}`)?.classList.add('kazandi');
-          }, j * 80);
-        }
-      }, 100);
-    }
-  } else {
-    durum.textContent = `Kelime: ${wKelime}`;
-    durum.style.color = 'var(--wrong)';
-  }
-}
-
-function wordleKaydet() {
-  const key = `bm_wordle_${new Date().toDateString()}`;
-  localStorage.setItem(key, JSON.stringify({
-    tahminler: wTahminler,
-    bitti: wBitti,
-    kazandi: wTahminler[wTahminler.length - 1] === wKelime
-  }));
-}
-
-function wordleKayitGetir() {
-  const raw = localStorage.getItem(`bm_wordle_${new Date().toDateString()}`);
-  return raw ? JSON.parse(raw) : null;
-}
-
-function wordleBannerGuncelle() {
-  const sub = document.getElementById('wordleSub');
-  if (!sub) return;
-  const kayit = wordleKayitGetir();
-  if (kayit?.bitti) {
-    sub.textContent = kayit.kazandi
-      ? `✅ ${kayit.tahminler.length}/6 denemede buldun!`
-      : `❌ Yarın tekrar dene (${wKelime || bugunkunKelime()})`;
-  } else {
-    sub.textContent = 'Bugünkü 5 harfli kelimeyi tahmin et!';
-  }
-}
-
-function wordlePaylas() {
-  const harita = { yesil: '🟩', sari: '🟨', gri: '⬛' };
-  const satirlar = wTahminler.map(t =>
-    tahminRenkle(t, wKelime).map(r => harita[r]).join('')
-  ).join('\n');
-  const kazandi = wTahminler[wTahminler.length - 1] === wKelime;
-  const metin = `🟩 Merak Tahminle #${wordleGunNo()}\n${kazandi ? wTahminler.length : 'X'}/6\n\n${satirlar}\n\nhttps://merak.io`;
-  if (navigator.share) {
-    navigator.share({ text: metin }).catch(() => {});
-  } else {
-    navigator.clipboard?.writeText(metin)
-      .then(() => toastGoster('📋 Sonuç kopyalandı!', true))
-      .catch(() => prompt('Kopyala:', metin));
-  }
-}
-
-// ═══════════════════════════
-// FLASHCARD EKRANI
-// ═══════════════════════════
-const FLASHCARD_HAVUZU = [
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Bukalemunlar renklerini neden değiştirir?",
-    cevap: "İletişim ve sıcaklık kontrolü için",
-    aciklama: "Kamuflaj için renk değiştirdikleri büyük bir efsanedir. Asıl amaçları ruh hallerini yansıtmak, diğer bukalemunlarla iletişim kurmak ve güneş ışığını emerek veya yansıtarak vücut sıcaklıklarını ayarlamaktır."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Boğalar kırmızı renge öfkelenir mi?",
-    cevap: "Hayır, renk körüdürler",
-    aciklama: "Boğalar kırmızıyı ayırt edemez. Onları öfkelendiren şey rengin kendisi değil, matadorun elindeki pelerinin (muleta) kışkırtıcı bir şekilde hareket etmesidir."
-  },
-  {
-    kategori: "İnsan Anatomisi",
-    soru: "İnsan beyninin yüzde kaçını kullanır?",
-    cevap: "Tamamını (%100)",
-    aciklama: "İnsanların beyninin sadece %10'unu kullandığı iddiası tamamen efsanedir. Modern beyin görüntüleme teknolojileri, basit eylemlerde bile beynin neredeyse tamamının aktif olduğunu göstermiştir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Napolyon Bonapart kısa boylu muydu?",
-    cevap: "Hayır, dönemi için ortalama boydaydı",
-    aciklama: "Napolyon yaklaşık 1.69 cm boyundaydı ve bu o dönemin Fransa'sında standart bir erkek boyuydu. İngiliz propagandası ve Fransız inç sisteminin yanlış çevrilmesi onu 'kısa' olarak tarihe geçirdi."
-  },
-  {
-    kategori: "Etimoloji",
-    soru: "Satrançtaki 'Şah Mat' kelimesi ne anlama gelir?",
-    cevap: "Kral öldü / yenildi",
-    aciklama: "Farsça 'Şah mât' kelimesinden gelir. Oyunun ve terimin kökeninin Doğu'ya dayandığının en büyük dilbilimsel kanıtlarından biridir."
-  },
-  {
-    kategori: "Genel Kültür",
-    soru: "Çin Seddi uzaydan çıplak gözle görülebilir mi?",
-    cevap: "Hayır, görülemez",
-    aciklama: "Dünya'nın yörüngesinden çıplak gözle hiçbir insan yapımı nesne (şehir ışıkları hariç) net olarak seçilemez. Çin Seddi'nin genişliği uzaydan fark edilmek için çok yetersizdir."
-  },
-  {
-    kategori: "Bilim & Doğa",
-    soru: "Dünya'daki oksijenin büyük kısmını kim üretir?",
-    cevap: "Okyanuslardaki fitoplanktonlar",
-    aciklama: "Ağaçların ürettiği oksijen çok önemli olsa da, soluduğumuz atmosferdeki oksijenin yaklaşık %50-80'i okyanuslardaki mikroskobik deniz canlıları olan fitoplanktonlar tarafından üretilir."
-  },
-  {
-    kategori: "Teknoloji Tarihi",
-    soru: "'Bluetooth' ismi nereden gelir?",
-    cevap: "Viking Kralı Mavi Dişli Harald'dan",
-    aciklama: "10. yüzyılda İskandinav kabilelerini birleştiren kralın adıdır. Teknoloji de farklı cihazları kablosuz olarak birleştirdiği için bu adı almıştır. Logosu da kralın rünik baş harfleridir."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Ölümden sonra saç ve tırnaklar uzamaya devam eder mi?",
-    cevap: "Hayır, uzamaz",
-    aciklama: "Ölümden sonra vücut su kaybına uğrar. Deri kuruyup çekildiği ve büzüldüğü için deri altındaki tırnaklar ve saçlar dışarı çıkarak 'uzamış' gibi bir görsel yanılsama yaratır."
-  },
-  {
-    kategori: "Bilim & Doğa",
-    soru: "Ahtapotların kaç tane kalbi vardır?",
-    cevap: "Üç (3) kalbi vardır",
-    aciklama: "İkisi solungaçlara kan pompalamak için, üçüncüsü ise kanı vücudun geri kalanına dağıtmak için çalışır. Ayrıca kanları demir değil, bakır içerdiği için mavi renklidir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Viking miğferlerinde boynuz var mıydı?",
-    cevap: "Hayır, tamamen kurgudur",
-    aciklama: "Gerçek Viking miğferleri düz ve boynuzsuzdur. Boynuzlu miğfer imajı, savaşta kullanışsız olmasına rağmen 19. yüzyılda Richard Wagner'in operalarındaki kostüm tasarımcıları tarafından yaratılmış bir efsanedir."
-  },
-  {
-    kategori: "Dil & Köken",
-    soru: "Japonca'da 'Sushi' kelimesi ne anlama gelir?",
-    cevap: "Ekşi pirinç",
-    aciklama: "Sıklıkla 'çiğ balık' sanılsa da, sushi kelimesi sirke ile tatlandırılmış 'ekşi pirinç' anlamına gelir. Çiğ balık dilimlerinin tek başına sunulmasına ise 'Sashimi' denir."
-  },
-  {
-    kategori: "Genel Kültür",
-    soru: "Dünyada hiç bozulmayan tek doğal gıda nedir?",
-    cevap: "Bal",
-    aciklama: "Düşük nem oranı ve yüksek asitliği sayesinde balın içinde mikroorganizmalar yaşayamaz. Eski Mısır mezarlarında bulunan 3000 yıllık balların bile hâlâ yenebilir olduğu görülmüştür."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Yarasalar kör müdür?",
-    cevap: "Hayır, görebilirler",
-    aciklama: "Tüm yarasa türleri görebilir. Hatta bazılarının gece görüşü insanlarınkinden çok daha iyidir. Ancak avlanmak ve karanlıkta uçmak için daha çok 'ekolokasyon' (yankı konumu) sistemine güvenirler."
-  },
-  {
-    kategori: "İlginç Bilgiler",
-    soru: "Eyfel Kulesi'nin boyu yaz aylarında neden değişir?",
-    cevap: "Isı genleşmesi yüzünden 15 cm uzar",
-    aciklama: "Eyfel Kulesi demirden yapıldığı için, yazın güneşin sıcaklığı metalin genleşmesine neden olur. Bu termal genleşme devasa kulenin boyunu 15 santimetreye kadar uzatabilir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Einstein ilkokulda matematikten kalmış mıdır?",
-    cevap: "Hayır, daima çok başarılıydı",
-    aciklama: "Bu efsane not sistemlerinin karıştırılmasından doğmuştur. Kendisi bu iddiayı 'Matematikten hiç kalmadım, 15 yaşından önce diferansiyel ve integral hesaplamada ustalaşmıştım' diyerek yalanlamıştır."
-  },
-  {
-    kategori: "Bilim & Doğa",
-    soru: "Develer hörgüçlerinde ne depolar?",
-    cevap: "Yağ depolar",
-    aciklama: "Hörgüçlerde su değil, 36 kilograma kadar yağ depolanır. Bu yağ enerjiye dönüştüğünde, yan ürün olarak su da açığa çıkar."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Japon balıklarının hafızası 3 saniye midir?",
-    cevap: "Hayır, aylarca sürebilir",
-    aciklama: "Bilimsel testler, Japon balıklarının karmaşık şekilleri ve sesleri aylarca hatırlayabildiğini kanıtlamıştır."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Şeker yemek çocukları hiperaktif yapar mı?",
-    cevap: "Hayır, bilimsel kanıtı yoktur",
-    aciklama: "Birçok araştırma şeker tüketimi ile hiperaktivite arasında bağ bulamamıştır. Davranış değişikliği genellikle şekerin verildiği eğlenceli ve hareketli parti ortamlarından kaynaklanır."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Farelerin en sevdiği yiyecek peynir midir?",
-    cevap: "Hayır, tatlıları ve tahılları tercih ederler",
-    aciklama: "Fareler yüksek karbonhidratlı ve tatlı yiyecekleri (fıstık ezmesi, meyve, tahıl) severler. Güçlü kokulu peynirler aslında onları rahatsız bile edebilir."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Gökdelenden atılan bir bozuk para insanı öldürebilir mi?",
-    cevap: "Hayır, ölümcül değildir",
-    aciklama: "Madeni paranın ağırlığı ve aerodinamik yapısı onun terminal hızını (maksimum düşüş hızını) sınırlar. Çarptığında acıtır ama kafatasını delemez."
-  },
-  {
-    kategori: "İnsan Anatomisi",
-    soru: "İnsan kanı damarların içindeyken mavi midir?",
-    cevap: "Hayır, her zaman kırmızıdır",
-    aciklama: "Kan her zaman kırmızıdır (oksijensizken koyu bordo olur). Damarların mavi görünmesinin nedeni, derinin ve dokuların ışığı yansıtma ve emme biçimidir (optik illüzyon)."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Devekuşları korkunca kafalarını kuma gömer mi?",
-    cevap: "Hayır, yumurtalarını kontrol ederler",
-    aciklama: "Devekuşları yuvalarını yere kazdıkları sığ çukurlara yaparlar. Kafalarını eğerek yumurtaları çevirmeleri, uzaktan 'kuma gömülmüş' gibi bir yanılsama yaratır."
-  },
-  {
-    kategori: "Bilim & Doğa",
-    soru: "Köpekler terler mi?",
-    cevap: "Evet, ancak patilerinden terlerler",
-    aciklama: "Köpeklerin derilerinde bizimki gibi ter bezleri yoktur. Sadece patilerinden terlerler ve asıl serinleme yöntemleri dillerini dışarı çıkararak hızlı nefes alıp vermektir."
-  },
-  {
-    kategori: "Jeoloji & Doğa",
-    soru: "Pırlanta (Elmas) kömürden mi oluşur?",
-    cevap: "Hayır, saf karbondan oluşur",
-    aciklama: "Elmasların çoğu yeryüzündeki bitkiler ve dolayısıyla kömür oluşmadan çok önce, milyarlarca yıl önce Dünya'nın derinliklerinde saf karbondan yüksek basınçla oluşmuştur."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Şimşek aynı yere iki kez düşmez mi?",
-    cevap: "Düşer, hem de sık sık",
-    aciklama: "Özellikle yüksek binalara ve ağaçlara fırtına sırasında defalarca yıldırım düşebilir. Örneğin New York'taki Empire State binasına yılda ortalama 25 kez yıldırım düşer."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Uzayda yerçekimi sıfır mıdır?",
-    cevap: "Hayır, her yerde yerçekimi vardır",
-    aciklama: "Uluslararası Uzay İstasyonu'nda (ISS) yerçekimi Dünya yüzeyindekinin yaklaşık %90'ı kadardır. Astronotlar 'sürekli serbest düşüş' halinde oldukları için ağırlıksız hissederler."
-  },
-  {
-    kategori: "İnsan Vücudu",
-    soru: "Yutulan sakızın sindirilmesi 7 yıl mı sürer?",
-    cevap: "Hayır, normal şekilde atılır",
-    aciklama: "Mide asidi sakızın lastik tabanını tam sindiremez, ancak sakız sindirim sisteminden diğer yiyecekler gibi birkaç gün içinde doğal yollarla dışarı atılır."
-  },
-  {
-    kategori: "Kişisel Bakım",
-    soru: "Tıraş edilen saç veya kıl daha gür mü çıkar?",
-    cevap: "Hayır, aynı kalınlıkta çıkar",
-    aciklama: "Tıraş bıçağı kılın ucunu küt keser. Küt uçlu kıl uzadığında daha kalın ve sertmiş gibi bir his verir, ancak kılın kök yapısı veya gerçek kalınlığı değişmez."
-  },
-  {
-    kategori: "İnsan Vücudu",
-    soru: "Soğuk havada alkol içmek vücudu ısıtır mı?",
-    cevap: "Hayır, ısı kaybını artırır",
-    aciklama: "Alkol, kan damarlarını genişleterek sıcak kanın cilt yüzeyine hücum etmesini sağlar. Bu, insana sıcaklık hissi verse de aslında vücudun merkez ısısının hızla düşmesine neden olur."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "Parmak çıtlatmak kireçlenmeye yol açar mı?",
-    cevap: "Hayır, hiçbir zararı yoktur",
-    aciklama: "Çıtlama sesi, eklem sıvısındaki nitrojen gazı baloncuklarının patlamasından gelir. Bilimsel araştırmalar parmak çıtlatma ile artrit (kireçlenme) arasında hiçbir bağlantı bulamamıştır."
-  },
-  {
-    kategori: "Uyku ve Sağlık",
-    soru: "Uyurgezer birini uyandırmak tehlikeli midir?",
-    cevap: "Uyandırmamak daha tehlikelidir",
-    aciklama: "Uyurgezeri uyandırmak onu sadece kısa süreliğine sersemletir ve kafasını karıştırır. Ancak onu uyandırmayıp yürümeye bırakmak, merdivenden düşme gibi ölümcül kazalara yol açabilir."
-  },
-  {
-    kategori: "İnsan Anatomisi",
-    soru: "İnsanın sadece 5 duyusu mu vardır?",
-    cevap: "Hayır, en az 20 duyumuz vardır",
-    aciklama: "Görme, duyma, koklama, tat alma ve dokunma dışında; denge, ısı algısı, ağrı, bedenin konumunu bilme (propriosepsiyon) ve zaman algısı gibi birçok gelişmiş duyumuz vardır."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "Çok fazla şeker yemek diyabet (şeker hastalığı) yapar mı?",
-    cevap: "Doğrudan şeker yemek yapmaz",
-    aciklama: "Tip 1 diyabet otoimmün bir hastalıktır. Tip 2 diyabet ise genetik, yaş, hareketsizlik ve aşırı kilo gibi faktörlere bağlıdır. Şeker tüketimi sadece kilo aldırdığı için dolaylı bir risktir."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "Paslı çivi batması tetanoz mu yapar?",
-    cevap: "Pas değil, topraktaki bakteri yapar",
-    aciklama: "Tetanoza 'Clostridium tetani' bakterisi neden olur. Bu bakteri pasın içinde değil, toprakta, hayvan dışkısında ve tozlarda bulunur. Çivinin paslı olması, sadece toprakta uzun süre kaldığını gösterir."
-  },
-  {
-    kategori: "Tarih Öncesi",
-    soru: "Pterodaktiller dinozor mudur?",
-    cevap: "Hayır, uçan sürüngenlerdir",
-    aciklama: "Dinozorlarla aynı dönemde yaşamış olsalar da, evrimsel olarak dinozor ağacında yer almazlar. Onlar 'Pterozor' (uçan sürüngen) olarak ayrı bir grupta sınıflandırılır."
-  },
-  {
-    kategori: "Tarih Öncesi",
-    soru: "T-Rex ile Stegosaurus aynı dönemde mi yaşadı?",
-    cevap: "Aralarında 80 milyon yıl vardır",
-    aciklama: "T-Rex'in yaşadığı Kretase dönemi, günümüze Stegosaurus'un yaşadığı döneme olduğundan daha yakındır. Jurassic Park filmleri bu algıyı biraz bozmuştur."
-  },
-  {
-    kategori: "Coğrafya & Doğa",
-    soru: "Dünyanın en yüksek dağı Everest midir?",
-    cevap: "Tabanından zirvesine Mauna Kea'dır",
-    aciklama: "Deniz seviyesinden ölçüldüğünde Everest en yüksektir. Ancak okyanus tabanından zirvesine ölçüldüğünde Hawaii'deki Mauna Kea 10.000 metreyi aşarak açık ara birinci olur."
-  },
-  {
-    kategori: "Coğrafya & Doğa",
-    soru: "Dünyanın en büyük çölü Sahra Çölü müdür?",
-    cevap: "Hayır, Antarktika Çölü'dür",
-    aciklama: "Çöl, yıllık yağış miktarının çok düşük olduğu kurak alan demektir. Sıcak olması gerekmez. Bu tanıma göre 14 milyon km² ile Antarktika dünyanın en büyük çölüdür."
-  },
-  {
-    kategori: "Coğrafya",
-    soru: "Avustralya'nın başkenti Sidney midir?",
-    cevap: "Hayır, Canberra'dır",
-    aciklama: "Sidney ve Melbourne arasındaki çekişmeyi çözmek için, her iki şehre de eşit uzaklıkta olan Canberra sıfırdan planlanarak inşa edilmiş ve başkent yapılmıştır."
-  },
-  {
-    kategori: "Kültür & Köken",
-    soru: "Şans kurabiyeleri Çin icadı mıdır?",
-    cevap: "Hayır, Japon/Amerikan icadıdır",
-    aciklama: "Şans kurabiyelerinin kökeni 19. yüzyıl Kyoto, Japonya'sına dayanır. Ancak günümüzdeki formatı 20. yüzyılın başlarında ABD'de (Kaliforniya) ortaya çıkmış ve Çin restoranlarında popüler olmuştur."
-  },
-  {
-    kategori: "Kültür & Köken",
-    soru: "Patates kızartması (French fries) Fransa'da mı icat edildi?",
-    cevap: "Hayır, Belçika'da icat edildi",
-    aciklama: "I. Dünya Savaşı'nda Amerikan askerleri Belçika'da patates kızartması yedi. Belçika ordusunun dili Fransızca olduğu için buna 'French fries' (Fransız kızartması) adını verdiler."
-  },
-  {
-    kategori: "Kültür & Köken",
-    soru: "Kruvasan Fransız icadı mıdır?",
-    cevap: "Hayır, Avusturya kökenlidir",
-    aciklama: "Kruvasanın atası 'Kipferl' adlı Avusturya çöreğidir. 1830'larda Viyanalı bir fırıncı Paris'te dükkân açıp bunu satmaya başlayınca zamanla Fransız kültürüne yerleşmiştir."
-  },
-  {
-    kategori: "Coğrafya & Üretim",
-    soru: "Panama şapkaları Panama'da mı üretilir?",
-    cevap: "Hayır, Ekvador'da üretilir",
-    aciklama: "Ekvador'da toquilla adlı özel bir hasırdan dokunan bu şapkalar, 19. yüzyılda Panama Kanalı işçileri tarafından takılıp dünyaya oradan ihraç edildiği için bu adı almıştır."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Marie Antoinette 'Ekmek bulamıyorlarsa pasta yesinler' dedi mi?",
-    cevap: "Hayır, bu söz ona ait değildir",
-    aciklama: "Fransız Devrimi'nden yıllar önce Jean-Jacques Rousseau'nun 'İtiraflar' kitabında bu söz anonim bir prensese atfedilmiştir. Daha sonra kraliçeyi karalamak için kasıtlı olarak ona mal edilmiştir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Demir Bakire (Iron Maiden) bir Orta Çağ işkence aleti miydi?",
-    cevap: "Hayır, 19. yüzyıl uydurmasıdır",
-    aciklama: "İçi çivili bu korkunç demir dolap, Orta Çağ'da hiç var olmadı. Müzeleri gezmeye gelen turistleri etkilemek ve korkutmak için 19. yüzyılda kurgulanmış sahte bir alettir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Ninjalar her zaman siyah mı giyinirdi?",
-    cevap: "Hayır, halkın arasına karışırlardı",
-    aciklama: "Gerçek ninjalar (shinobi) yetenekli casuslardı ve dikkat çekmemek için çiftçi veya keşiş kıyafetleri giyerlerdi. Siyah giysi imajı, Japon tiyatrolarındaki sahne görevlilerinden gelir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Mısır piramitlerini köleler mi inşa etti?",
-    cevap: "Hayır, maaşlı işçiler inşa etti",
-    aciklama: "Arkeolojik kazılar, piramitleri inşa edenlerin iyi beslenen, vergiden muaf tutulan ve firavuna sadık saygın çiftçiler ile kalifiye zanaatkarlar olduğunu kanıtlamıştır."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Gladyatör dövüşleri her zaman ölümle mi sonuçlanırdı?",
-    cevap: "Hayır, ölüm oldukça nadirdi",
-    aciklama: "Gladyatörlerin eğitimi, barınması ve bakımı devasa bir yatırımdı. Dövüşlerin çoğu sıkı kuralları olan bir spor müsabakası gibiydi ve genellikle kimse ölmeden biterdi."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Van Gogh kendi kulağının tamamını mı kesti?",
-    cevap: "Hayır, sadece kulak memesini kesti",
-    aciklama: "Ressam Gauguin ile yaşadığı bir tartışmanın ardından ağır bir sinir krizi geçiren Van Gogh, kulağının sadece alt kısmındaki küçük bir parçayı kesmiştir."
-  },
-  {
-    kategori: "Bilim Tarihi",
-    soru: "Newton'un kafasına gerçekten elma düştü mü?",
-    cevap: "Hayır, elmanın düştüğünü izledi",
-    aciklama: "Newton yerçekimi teorisini, kafasına elma düşmesiyle değil; bir elmanın ağaçtan yere dik bir şekilde nasıl düştüğünü uzaktan gözlemleyerek ve üzerine düşünerek bulmuştur."
-  },
-  {
-    kategori: "Bilim Tarihi",
-    soru: "Teleskopu Galileo mu icat etti?",
-    cevap: "Hayır, Hans Lippershey icat etti",
-    aciklama: "Hollandalı bir gözlükçü olan Hans Lippershey ilk teleskopun patentini almıştır. Galileo ise bu tasarımı geliştirip ilk kez astronomi için gökyüzüne çeviren kişidir."
-  },
-  {
-    kategori: "İcatlar & Mucitler",
-    soru: "Ampulü Thomas Edison mu icat etti?",
-    cevap: "Hayır, mevcut icadı geliştirdi",
-    aciklama: "Edison'dan önce Joseph Swan gibi 20'den fazla mucit elektrikli lamba yapmıştı. Edison, uzun süre yanabilen ticari olarak pratik karbon flamanlı ampulü geliştirip patentlemiştir."
-  },
-  {
-    kategori: "İcatlar & Mucitler",
-    soru: "Otomobili Henry Ford mu icat etti?",
-    cevap: "Hayır, Karl Benz icat etti",
-    aciklama: "İlk modern benzinli otomobili 1886'da Alman mühendis Karl Benz yapmıştır. Henry Ford ise 1908'de 'hareketli seri üretim bandı' sistemini kurarak otomobili ucuzlaştıran kişidir."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Kolomb dönemindeki insanlar dünyanın düz olduğuna mı inanıyordu?",
-    cevap: "Hayır, yuvarlak olduğu biliniyordu",
-    aciklama: "Eski Yunan'dan beri (Pisagor, Eratosthenes) eğitimli Avrupalıların çoğu dünyanın küre şeklinde olduğunu biliyordu. Kolomb'un gezisindeki tartışma dünyanın şekli değil, Asya'ya olan uzaklığıydı."
-  },
-  {
-    kategori: "Edebiyat & Sinema",
-    soru: "Frankenstein, yeşil renkli dev canavarın adı mıdır?",
-    cevap: "Hayır, canavarı yaratan doktorun adıdır",
-    aciklama: "Mary Shelley'nin kitabında 'Frankenstein', canavarı yaratan hırslı bilim insanı Dr. Victor Frankenstein'dır. Canavarın romanda belli bir ismi yoktur, ona sadece 'yaratık' denir."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Kara delikler elektrik süpürgesi gibi her şeyi içine çeker mi?",
-    cevap: "Hayır, sadece çok yoğun kütleçekimleri vardır",
-    aciklama: "Eğer Güneş'in yerine tamamen aynı kütlede bir kara delik koysaydık, Dünya içine çekilmezdi. Tıpkı şimdi olduğu gibi kendi yörüngesinde dönmeye devam ederdi."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Güneş sarı veya turuncu renkte midir?",
-    cevap: "Hayır, Güneş aslında beyazdır",
-    aciklama: "Güneş uzaydan bakıldığında saf beyaz görünür. Atmosferimizdeki gazlar kısa dalga boylu ışıkları (mavi) saçtığı için yeryüzünden sarımtırak veya kırmızımsı bir yanılsamayla görünür."
-  },
-  {
-    kategori: "Bilim & Fizik",
-    soru: "Su elektriği iletir mi?",
-    cevap: "Saf su elektriği iletmez",
-    aciklama: "Elektriği ileten şey suyun kendisi değil, içindeki çözünmüş mineraller, tuzlar ve iyonlardır. Laboratuvar ortamında damıtılmış %100 saf su mükemmel bir yalıtkandır."
-  },
-  {
-    kategori: "Bilim & Fizik",
-    soru: "Cam çok yavaş akan bir sıvı mıdır?",
-    cevap: "Hayır, cam amorf bir katıdır",
-    aciklama: "Eski kilise pencerelerinin alt kısmının kalın olmasının nedeni camın akması değil, o dönemdeki ilkel üretim teknolojisinin eşit kalınlık sağlayamaması ve ağır kısmın alta konmasıdır."
-  },
-  {
-    kategori: "Evrim & Biyoloji",
-    soru: "İnsanlar şempanzelerden mi evrimleşmiştir?",
-    cevap: "Hayır, ortak bir atadan geliriz",
-    aciklama: "İnsanlar şempanzelerden veya bugün yaşayan herhangi bir maymundan evrimleşmemiştir. Sadece milyonlarca yıl önce aynı 'ortak atayı' paylaşmış ve sonra iki farklı dala ayrılmışlardır."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "Soğuk hava insanı hasta eder mi?",
-    cevap: "Hayır, virüsler hasta eder",
-    aciklama: "Üşütmek doğrudan nezle yapmaz. Sadece soğuk havada insanlar kapalı alanlarda ve bir arada daha çok vakit geçirir, bu da virüslerin insandan insana bulaşmasını kolaylaştırır."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "Havuç yemek gece görüşünü artırır mı?",
-    cevap: "Hayır, bu bir savaş propagandasıdır",
-    aciklama: "II. Dünya Savaşı'nda İngilizler, icat ettikleri yeni radarlarını Almanlardan saklamak için pilotlarının 'çok havuç yediği için' gece mükemmel gördüğü yalanını yaymışlardır."
-  },
-  {
-    kategori: "Gıda & Beslenme",
-    soru: "Ispanak aşırı derecede demir içerdiği için kasları güçlendirir mi?",
-    cevap: "Hayır, bu bir ondalık virgül hatasıdır",
-    aciklama: "1870'lerde yapılan bir analizde ondalık virgül yanlış yere konduğu için ıspanağın demir oranı 10 kat fazla sanıldı. Temel Reis efsanesi bu matematiksel hataya dayanır."
-  },
-  {
-    kategori: "Mutfak Gerçekleri",
-    soru: "Az pişmiş biftekteki kırmızı sıvı kan mıdır?",
-    cevap: "Hayır, kas proteini olan miyoglobindir",
-    aciklama: "Et kesim işleminde kanın tamamı boşaltılır. Tabağınızdaki kırmızı sıvı, kaslara oksijen taşıyan ve suyla karışınca kırmızımsı olan 'miyoglobin' adlı bir proteindir."
-  },
-  {
-    kategori: "Mutfak Gerçekleri",
-    soru: "Eti yüksek ateşte mühürlemek (sear) etin suyunu içine hapseder mi?",
-    cevap: "Hayır, sadece lezzet katar",
-    aciklama: "Mühürleme işlemi etin gözeneklerini kapatıp suyu tutmaz; aksine ısıyla birlikte su kaybı devam eder. Amacı, Maillard reaksiyonu ile karamelize ve zengin bir lezzet katmaktır."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Köpekler dünyayı sadece siyah-beyaz mı görür?",
-    cevap: "Hayır, sarı ve mavi tonlarını da görebilirler",
-    aciklama: "Köpeklerin gözünde kırmızı ve yeşili algılayan koni hücreleri yoktur, ancak sarı, mavi ve grinin çeşitli tonlarını oldukça net algılarlar."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "İnsanlar dokunursa anne kuşlar yavrularını terk eder mi?",
-    cevap: "Hayır, kuşların koku alma duyusu çok zayıftır",
-    aciklama: "Kuşların çoğu yavrusuna dokunan insan kokusunu alamaz ve yuvasını terk etmez. Yine de vahşi doğaya müdahale edilmemesi tavsiye edilir."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Ortadan ikiye bölünen solucan iki ayrı solucan olur mu?",
-    cevap: "Hayır, sadece baş kısmı yaşayabilir",
-    aciklama: "Toprak solucanı bölündüğünde kuyruk kısmı ölür. Sadece baş kısmında yeterince hayati organ kalmışsa, kesilen bölgesini iyileştirerek yaşamaya devam edebilir."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Köpekbalıkları asla kanser olmaz mı?",
-    cevap: "Hayır, onlarda da kanser görülür",
-    aciklama: "Köpekbalıklarında tümör oluşumu daha nadir olsa da kesinlikle kanser olurlar. Bu efsane, köpekbalığı kıkırdağı satmak isteyen sahte alternatif tıp sektörü tarafından uydurulmuştur."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Yunuslar her zaman zararsız ve dost canlısı mıdır?",
-    cevap: "Hayır, oldukça agresif olabilirler",
-    aciklama: "Yunuslar son derece zeki oldukları kadar diğer deniz canlılarına (ve hatta bazen yavrularına) karşı nedensiz yere şiddet uygulayabilen nadir hayvanlardandır."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Kurt sürülerinde liderlik kavgasıyla 'Alfa kurdu' mu seçilir?",
-    cevap: "Hayır, vahşi doğada alfa yoktur",
-    aciklama: "Sürü içindeki 'alfa' algısı, esaret altındaki birbirini tanımayan kurtlar üzerinde yapılan hatalı bir çalışmaya dayanır. Vahşi doğada kurt sürüsü, anne-baba ve yavrularından oluşan basit bir ailedir."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Ayılar kışın tam bir 'kış uykusuna' mı yatar?",
-    cevap: "Hayır, 'torpor' denen hafif bir uykuya dalarlar",
-    aciklama: "Gerçek kış uykusunda (örn: sincaplar) vücut ısısı sıfıra yaklaşır. Ayıların ise ısısı sadece birkaç derece düşer ve tehlike anında hemen uyanabilirler."
-  },
-  {
-    kategori: "Bitki Bilimi",
-    soru: "Muz ağaçta mı yetişir?",
-    cevap: "Hayır, dev bir otsu bitkide yetişir",
-    aciklama: "Muz bitkisinin odunsu bir gövdesi yoktur. Yaprakların üst üste sarılmasıyla oluşan yalancı bir gövdedir, bu nedenle teknik olarak dünyanın en büyük 'ot'udur."
-  },
-  {
-    kategori: "Bitki Bilimi",
-    soru: "Yer fıstığı ağaçta veya dalda mı yetişir?",
-    cevap: "Hayır, toprak altında yetişir",
-    aciklama: "Yer fıstığı, ceviz veya fındık gibi bir ağaç yemişi değil, baklagiller ailesindendir. Çiçek açtıktan sonra sapını toprağa gömer ve fıstıklar toprak altında olgunlaşır."
-  },
-  {
-    kategori: "Bitki Bilimi",
-    soru: "Çilek biyolojik olarak bir 'üzümsü meyve' (berry) midir?",
-    cevap: "Hayır, bir yalancı meyvedir",
-    aciklama: "Botanik bilimine göre çilek, ahududu ve böğürtlen 'berry' sınıfına girmez. İlginç bir şekilde, muz, karpuz, kivi ve patlıcan gerçek 'berry' (üzümsü meyve) sınıfındadır."
-  },
-  {
-    kategori: "Tarih Öncesi",
-    soru: "Brontosaurus adında bir dinozor gerçekten yaşamış mıdır?",
-    cevap: "Evet ama adı yıllarca iptal edilmişti",
-    aciklama: "Apatosaurus kemiklerinin yanlış başla birleştirilmesiyle yıllarca efsanevi 'Brontosaurus' dendi. Ancak 2015'teki yeni araştırmalarla onun gerçekten ayrı bir tür olduğu kanıtlanıp ismi bilim dünyasına geri verildi."
-  },
-  {
-    kategori: "Coğrafya & Doğa",
-    soru: "Penguenler ve kutup ayıları aynı coğrafyada mı yaşar?",
-    cevap: "Hayır, dünyanın zıt kutuplarındadırlar",
-    aciklama: "Kutup ayıları Kuzey Kutbu'nda (Arktik), penguenler ise Güney Kutbu'nda (Antarktika) yaşar. Doğal ortamlarında asla birbirleriyle karşılaşmazlar."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Güneş sisteminin sınırı Plüton ile mi biter?",
-    cevap: "Hayır, Oort Bulutu ile biter",
-    aciklama: "Plüton, Güneş sisteminin sadece iç sınırındaki Kuiper Kuşağı'nda yer alır. Sistemin gerçek sınırı, Plüton'dan binlerce kat daha uzakta olan trilyonlarca buzlu cisimden oluşan Oort Bulutu'dur."
-  },
-  {
-    kategori: "İnsan Anatomisi",
-    soru: "Beyin ne kadar büyükse canlı o kadar zeki midir?",
-    cevap: "Hayır, kıvrımlar ve bağlantılar önemlidir",
-    aciklama: "Fil veya balina beyni insan beyninden çok daha büyüktür. Zekayı belirleyen şey ağırlık değil; beyin zarındaki kıvrım sayısı ve nöronlar arası sinaptik bağlantıların karmaşıklığıdır."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Tembel hayvanlar gerçekten sadece 'tembel' oldukları için mi yavaş hareket eder?",
-    cevap: "Hayır, düşük kalorili diyetlerinin sonucudur",
-    aciklama: "Yedikleri zehirli ve sert yaprakların sindirimi çok zor ve düşük enerjilidir. Metabolizmaları o kadar yavaştır ki hayatta kalabilmek için enerjilerini çok dikkatli harcamak zorundadırlar."
-  },
-  {
-    kategori: "Evcil Hayvanlar",
-    soru: "Kedilerin en sağlıklı içeceği inek sütü müdür?",
-    cevap: "Hayır, kediler laktoz intoleransına sahiptir",
-    aciklama: "Büyüdükten sonra kedilerin çoğu inek sütündeki laktozu sindiremez. Süt vermek onlara yarardan çok zarar verir, şiddetli ishal ve sindirim sorunlarına yol açar."
-  },
-  {
-    kategori: "Hayvanlar Alemi",
-    soru: "Kuşların kemiklerinin içi boş olduğu için mi hafiflerdir?",
-    cevap: "Hayır, insan kemiğinden bile daha yoğundurlar",
-    aciklama: "Uçabilmek için kemiklerinin içi havalı oyuklara (pnömatik) sahiptir ama kemik dokuları memelilerden daha yoğun ve güçlüdür. Toplam iskelet ağırlıkları da uçmayan hayvanlarla aynı orandadır."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Dünya uzaydan bakıldığında mükemmel bir küre midir?",
-    cevap: "Hayır, 'Geoid' adı verilen şekildedir",
-    aciklama: "Dünya, kendi etrafında dönmesinin yarattığı merkezkaç kuvveti nedeniyle Ekvator'dan şişkin, kutuplardan basık, hafif yumurta veya patatesimsi bir şekle sahiptir."
-  },
-  {
-    kategori: "Etimoloji",
-    soru: "'Robot' kelimesi ne anlama gelir ve nereden türemiştir?",
-    cevap: "Çekçe 'zorla çalıştırılan işçi / köle' demektir",
-    aciklama: "İlk kez 1920 yılında Çek yazar Karel Čapek'in 'R.U.R.' adlı tiyatro oyununda kullanılmıştır. Çekçe 'robota' (angarya, zorunlu çalışma) kelimesinden gelir."
-  },
-  {
-    kategori: "Etimoloji",
-    soru: "'Karantina' kelimesi tarihsel olarak hangi anlama gelir?",
-    cevap: "İtalyanca 'Kırk (40) Gün' demektir",
-    aciklama: "14. yüzyılda Veba salgını sırasında Venedik'e gelen gemilerin hastalık taşımadığından emin olmak için limana girmeden önce denizde 'quaranta giorni' (40 gün) beklemesi kuralından doğmuştur."
-  },
-  {
-    kategori: "Etimoloji",
-    soru: "'Boykot' kelimesi nereden gelmektedir?",
-    cevap: "Kötü şöhretli bir toprak ağasının soyadıdır",
-    aciklama: "19. yüzyılda İrlanda'da çiftçilere acımasız davranan Kaptan Charles Boycott'a karşı halkın onu tamamen izole edip iş yapmayı reddetmesi olayından sonra bu soyadı küresel bir eylemin adı olmuştur."
-  },
-  {
-    kategori: "İcatlar & Mucitler",
-    soru: "Mikrodalga fırın nasıl icat edilmiştir?",
-    cevap: "Cepteki bir çikolatanın erimesiyle tesadüfen",
-    aciklama: "1945'te mühendis Percy Spencer, bir radar tüpü (magnetron) üzerinde çalışırken cebindeki çikolatanın eridiğini fark etti. Radyo dalgalarının suyu ısıttığını keşfederek mikrodalga fırını geliştirdi."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Ay'ın 'karanlık yüzü' hiç güneş ışığı almaz mı?",
-    cevap: "Alır, sadece bizim açımızdan 'görünmez' yüzüdür",
-    aciklama: "Ay kendi etrafında ve Dünya etrafında aynı sürede döndüğü için bize hep aynı yüzünü gösterir. Ancak yeni ay evresinde (biz ayı karanlık görürken) diğer yüzü tamamen güneş ışığı alır."
-  },
-  {
-    kategori: "Bilim & Fizik",
-    soru: "Sifon veya lavabodan akan su Güney Yarımküre'de tersine mi döner?",
-    cevap: "Hayır, bu bir şehir efsanesidir",
-    aciklama: "Coriolis etkisi okyanus akıntıları ve kasırgalar gibi devasa sistemleri etkiler. Bir lavabodaki suyun dönüş yönünü lavabonun şekli ve suyun dökülüş açısı belirler."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Arabalarımıza koyduğumuz petrol dinozor fosillerinden mi oluşur?",
-    cevap: "Hayır, antik mikroskobik deniz canlılarından oluşur",
-    aciklama: "Petrolün çok büyük bir kısmı dinozorlar yaşamadan milyonlarca yıl önce okyanuslarda ölüp deniz tabanına çöken fitoplankton ve alglerden oluşmuştur."
-  },
-  {
-    kategori: "Tarihi Yanılgılar",
-    soru: "Roma imparatorlarının arenada verdiği 'başparmak aşağı' işareti 'öldür' mü demekti?",
-    cevap: "Muhtemelen tam tersiydi",
-    aciklama: "Tarihçilere göre 'başparmağın yukarı/çekili' olması kılıcın çekilmesi (öldür), 'başparmağın aşağı (yumruk)' olması ise kılıcın kınına sokulması (bağışla) anlamına geliyordu. Hollywood bunu tersine çevirmiştir."
-  },
-  {
-    kategori: "Uzay & Astronomi",
-    soru: "Ay tutulmasında Ay neden kırmızı görünür?",
-    cevap: "Dünya'nın atmosferinden kırılan ışık yüzünden",
-    aciklama: "Dünya, Güneş ile Ay arasına girdiğinde Güneş ışınları Dünya'nın atmosferinden geçerken mavi ışıklar saçılır. Sadece kırmızı ışıklar kırılarak Ay'a yansır (Kanlı Ay)."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "C Vitamini soğuk algınlığını iyileştirir mi?",
-    cevap: "İyileştirmez, sadece süresini kısaltabilir",
-    aciklama: "C vitamini almak soğuk algınlığına yakalanmanızı engellemez veya sizi mucizevi şekilde iyileştirmez. Sadece hastalığın süresini çok hafif bir oranda kısaltabilir."
-  },
-  {
-    kategori: "Doğru Bilinen Yanlışlar",
-    soru: "Boğulan bir insan çırpınarak ve bağırarak mı yardım ister?",
-    cevap: "Hayır, boğulma tamamen sessizdir",
-    aciklama: "Boğulma anında vücudun solunum içgüdüsü her şeyin önüne geçer. Kişi bağıramaz ve ellerini su yüzeyinde tutmaya çalıştığı için çırpınamaz. Çoğu boğulma vakası etraftakiler fark etmeden sessizce gerçekleşir."
-  },
-  {
-    kategori: "Sağlık & Efsaneler",
-    soru: "Kadınlarda kalp krizi her zaman sol kol uyuşması ile mi belirti verir?",
-    cevap: "Hayır, kadınlarda farklı belirtiler sık görülür",
-    aciklama: "Kadınlarda kalp krizi sıklıkla aşırı yorgunluk, mide bulantısı, çene/sırt ağrısı veya nefes darlığı gibi atipik belirtilerle ortaya çıkar. Sol kol ağrısı erkeklerde daha belirgindir."
-  },
-  {
-    kategori: "Doğa & İklim",
-    soru: "Tayfun ve Kasırga (Hurricane) arasındaki fark nedir?",
-    cevap: "Sadece oluştukları coğrafi bölge farklıdır",
-    aciklama: "Her ikisi de tropikal siklondur. Kuzey Atlantik ve Kuzeydoğu Pasifik'te oluşanlara 'Kasırga', Kuzeybatı Pasifik'te oluşanlara ise 'Tayfun' denir."
-  },
-  {
-    kategori: "Evcil Hayvanlar",
-    soru: "Köpeklerin yaşını hesaplamak için insan yaşını 7 ile mi çarpmak gerekir?",
-    cevap: "Hayır, bu çok kaba ve yanlış bir hesaptır",
-    aciklama: "Köpekler ilk yıllarında insana göre çok daha hızlı yaşlanırlar (1 yaşındaki bir köpek 15 insan yaşındadır). Ayrıca büyük ırklar, küçük ırklara göre çok daha hızlı yaşlanır."
-  },
-  {
-    kategori: "Genel Kültür",
-    soru: "Olimpiyatlarda verilen altın madalyalar som altından mı yapılır?",
-    cevap: "Hayır, büyük çoğunluğu gümüştür",
-    aciklama: "Gerçek som altından yapılan son madalya 1912 Stockholm Olimpiyatları'nda verilmiştir. Günümüzdeki altın madalyalar en az %92.5 oranında gümüştür ve sadece dış yüzeyleri 6 gram altınla kaplanır."
-  },
-  {
-    kategori: "Sağlık & Beslenme",
-    soru: "Kahve ve çaydaki kafein vücudu ciddi şekilde susuz (dehidrate) bırakır mı?",
-    cevap: "Hayır, sıvı alımına katkı sağlarlar",
-    aciklama: "Kafein hafif bir idrar söktürücü (diüretik) olsa da, kahve ve çaydaki yüksek su miktarı bu etkiyi fazlasıyla dengeler. Günlük sıvı ihtiyacınızı karşılamaya yardımcı olurlar."
-  }
-];
-
-let fcSorular = [];
-let fcIndex = 0;
-let fcCevrildi = false;
-let fcBildiSayisi = 0;
-
-function flashcardBaslat() {
-  let duz = [...FLASHCARD_HAVUZU];
-
-  for (let i = duz.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [duz[i], duz[j]] = [duz[j], duz[i]];
-  }
-
-  fcSorular = duz.slice(0, 10);
-  fcIndex = 0;
-  fcBildiSayisi = 0;
-  fcCevrildi = false;
-
-  const bitis = document.getElementById('fcBitisEkrani');
-  if (bitis) { bitis.style.display = 'none'; bitis.classList.remove('show'); }
-  const wrap = document.getElementById('fcWrapper');
-  if (wrap) wrap.style.display = 'block';
-  const prog = document.getElementById('fcProgressRow');
-  if (prog) prog.style.display = 'flex';
-
-  ekranGoster('flashcardScreen');
-  fcKartGoster();
-}
-
-function fcKartGoster(gecikmeliArkaYuz = false) {
-  const s = fcSorular[fcIndex];
-  if (!s) return;
-
-  document.getElementById('fcKategori').textContent = s.kategori || 'Genel Kültür';
-  document.getElementById('fcSoru').textContent = s.soru;
-
-  const pct = ((fcIndex + 1) / fcSorular.length) * 100;
-  document.getElementById('fcProgressFill').style.width = pct + '%';
-  document.getElementById('fcProgressText').textContent = (fcIndex + 1) + ' / ' + fcSorular.length;
-
-  document.getElementById('fcWrapper').classList.remove('flipped');
-  const btnRow = document.getElementById('fcBtnRow');
-  if (btnRow) {
-    btnRow.style.display = 'none';
-    btnRow.classList.remove('show');
-  }
-  fcCevrildi = false;
-
-  const arkaYuzGuncelle = () => {
-    document.getElementById('fcCevap').textContent = s.cevap;
-    const aciklamaEl = document.getElementById('fcAciklama');
-    if (s.aciklama) {
-      aciklamaEl.textContent = s.aciklama;
-      aciklamaEl.style.display = 'block';
-    } else {
-      aciklamaEl.textContent = '';
-      aciklamaEl.style.display = 'none';
-    }
-  };
-
-  // Kart arkaya dönerken (kapanırken) yeni cevabın görünmemesi için güncellemeyi geciktiriyoruz
-  if (gecikmeliArkaYuz) {
-    setTimeout(arkaYuzGuncelle, 300);
-  } else {
-    arkaYuzGuncelle();
-  }
-}
-
-function flashcardCevir() {
-  if (fcIndex >= fcSorular.length) return;
-  document.getElementById('fcWrapper').classList.toggle('flipped');
-  fcCevrildi = !fcCevrildi;
-  const btnRow = document.getElementById('fcBtnRow');
-  if (fcCevrildi) {
-    btnRow.style.display = 'flex';
-    btnRow.classList.add('show');
-  } else {
-    btnRow.style.display = 'none';
-    btnRow.classList.remove('show');
-  }
-}
-
-function flashcardSonraki(bildi) {
-  if (bildi) fcBildiSayisi++;
-  fcIndex++;
-  if (fcIndex >= fcSorular.length) {
-    document.getElementById('fcWrapper').classList.remove('flipped');
-    const btnRow = document.getElementById('fcBtnRow');
-    if (btnRow) {
-      btnRow.style.display = 'none';
-      btnRow.classList.remove('show');
-    }
-    setTimeout(fcBitisGoster, 400);
-  } else {
-    fcKartGoster(true);
-  }
-}
-
-function fcBitisGoster() {
-  document.getElementById('fcWrapper').style.display = 'none';
-  document.getElementById('fcProgressRow').style.display = 'none';
-  const btnRow = document.getElementById('fcBtnRow');
-  if (btnRow) {
-    btnRow.style.display = 'none';
-    btnRow.classList.remove('show');
-  }
-  
-  document.getElementById('fcBitisB').textContent = fcBildiSayisi;
-  document.getElementById('fcBitisT').textContent = fcSorular.length;
-  
-  const bitis = document.getElementById('fcBitisEkrani');
-  bitis.style.display = 'flex';
-  bitis.classList.add('show');
-  
-  if (fcBildiSayisi >= 8) konfeti();
-}
-
-// ═══════════════════════════
 // SAYFA YÜKLENDİ
 // ═══════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
@@ -4377,11 +2856,70 @@ window.addEventListener('DOMContentLoaded', () => {
   // EAGER EKRAN GEÇİŞİ: Giriş ekranının boş kalmasını engeller
   const isMisafir = localStorage.getItem('bm_misafir') === '1';
   const sonEkran = localStorage.getItem('bm_son_ekran');
-  if (sonEkran || isMisafir) { yonlendirSonEkrana(); } 
-  else { ekranGoster('authScreen'); }
+
+  if (window.STANDALONE) {
+    // Portal iframe'inden açıldı: body gizli başlar, oyun hazır olunca fade-in
+    document.body.style.visibility = 'hidden';
+    document.body.classList.add('portal-iframe');
+    anaEkranBaslat();
+    const h = window.STANDALONE;
+    setTimeout(() => {
+      if (h === 'wordle') wordleBaslat();
+      else if (h === 'tahmin') tahminBaslat();
+      else if (h === 'quiz') {
+        document.body.classList.add('portal-nav-aktif');
+        const btn = document.querySelectorAll('.ed-tab-btn')[1];
+        edTabSec('bolumler', btn);
+      } else if (h === 'kartlar') {
+        document.body.classList.add('portal-nav-aktif');
+        const btn = document.querySelectorAll('.ed-tab-btn')[2];
+        edTabSec('kartlar', btn);
+        flashcardBaslat();
+      } else if (h === 'atolye' || h.startsWith('atolye-')) {
+        const btn = document.querySelectorAll('.ed-tab-btn')[3];
+        edTabSec('arsiv', btn);
+        const aracId = h.includes('-') ? h.split('-')[1] : null;
+        if (aracId) {
+          setTimeout(() => {
+            if (aracId === 'ders') dersProgramiAc();
+            else atAc(aracId);
+            document.body.classList.add('portal-tool-aktif');
+            document.body.style.visibility = '';
+            window.parent.postMessage('oyunHazir', '*');
+          }, 60);
+          return;
+        }
+      } else if (h === 'profil') {
+        profilGoster();
+      } else if (h === 'gorevler') {
+        gorevEkraniGoster();
+      } else if (h === 'magaza') {
+        magazaEkraniGoster();
+      } else if (h === 'yanlis') {
+        yanlisEkraniGoster();
+      } else if (h === 'giris') {
+        document.body.classList.add('portal-giris');
+        ekranGoster('authScreen');
+        document.body.style.visibility = '';
+        window.parent.postMessage('oyunHazir', '*');
+        return;
+      }
+      document.body.style.visibility = '';
+      window.parent.postMessage('oyunHazir', '*');
+    }, 60);
+  } else if (sonEkran || isMisafir) {
+    yonlendirSonEkrana();
+  } else {
+    ekranGoster('authScreen');
+  }
+
+  function wordleAktifMi() {
+    const panel = document.getElementById('edWordlePanel');
+    return panel && panel.style.display !== 'none';
+  }
 
   document.addEventListener('keydown', e => {
-    if (!document.getElementById('wordleScreen')?.classList.contains('active')) return;
+    if (!wordleAktifMi()) return;
     if (e.key === 'Enter')     { wTus('GİR'); return; }
     if (e.key === 'Backspace') { wTus('⌫'); return; }
     const harfMap = {
@@ -4398,7 +2936,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const gizliInput = document.getElementById('wordleGizliInput');
   if (gizliInput) {
     gizliInput.addEventListener('input', () => {
-      if (wBitti || !document.getElementById('wordleScreen')?.classList.contains('active')) return;
+      if (wBitti || !wordleAktifMi()) return;
       const val = gizliInput.value.toUpperCase();
       gizliInput.value = '';
       for (const ch of val) {
@@ -4406,14 +2944,17 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
     gizliInput.addEventListener('keydown', e => {
-      if (!document.getElementById('wordleScreen')?.classList.contains('active')) return;
-      if (e.key === 'Enter') { wTus('GİR'); e.preventDefault(); }
-      else if (e.key === 'Backspace') wTus('⌫');
+      if (!wordleAktifMi()) return;
+      if (e.key === 'Enter') { wTus('GİR'); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === 'Backspace') { wTus('⌫'); e.stopPropagation(); }
     });
     document.getElementById('wordleGrid')?.addEventListener('click', () => {
       if ('ontouchstart' in window) gizliInput.focus();
     });
   }
+
+  // İlk yüklemede aktif tab'ı görünür yap
+  requestAnimationFrame(() => document.getElementById('edTabBugun')?.classList.add('ed-tab-visible'));
 
   urlKontrolEt();
   firebaseBaslat();
@@ -4439,11 +2980,34 @@ window.addEventListener('DOMContentLoaded', () => {
 function edTabSec(tab, btn) {
   document.querySelectorAll('.ed-tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  document.getElementById('edTabBugun').style.display    = tab === 'bugun'    ? '' : 'none';
-  document.getElementById('edTabBolumler').style.display = tab === 'bolumler' ? '' : 'none';
-  document.getElementById('edTabArsiv').style.display    = tab === 'arsiv'    ? '' : 'none';
-  if (tab === 'bolumler') edBolumlerDoldur();
-  if (tab === 'arsiv')    edArsivDoldur();
+  const tabs = { bugun: 'edTabBugun', bolumler: 'edTabBolumler', kartlar: 'edTabKartlar', arsiv: 'edTabArsiv' };
+  const hasVisible = !!document.querySelector('.ed-content.ed-tab-visible');
+  const inDelay = hasVisible ? 90 : 0;
+
+  Object.entries(tabs).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (key === tab) {
+      setTimeout(() => {
+        el.style.display = '';
+        requestAnimationFrame(() => el.classList.add('ed-tab-visible'));
+        if (tab === 'bolumler') edBolumlerDoldur();
+        if (tab === 'arsiv')    edArsivDoldur();
+        if (tab === 'kartlar')  ktIstatistikGoster();
+        const fab = document.getElementById('fabWrap');
+        if (fab) fab.style.display = tab === 'bugun' ? 'flex' : 'none';
+        const footer = document.querySelector('.site-footer');
+        if (footer) footer.style.display = tab === 'bugun' ? '' : 'none';
+      }, inDelay);
+    } else {
+      el.classList.remove('ed-tab-visible');
+      el.classList.add('ed-tab-leaving');
+      setTimeout(() => {
+        el.classList.remove('ed-tab-leaving');
+        if (!el.classList.contains('ed-tab-visible')) el.style.display = 'none';
+      }, 170);
+    }
+  });
 }
 
 function edModSec(mod, el) {
@@ -4474,6 +3038,13 @@ function edKategoriSec(kat) {
   seciliKategori = kat;
   const legacyBtn = document.querySelector(`.cat-btn[data-kat="${kat}"]`);
   if (legacyBtn) legacyBtn.click();
+  // Bayrak/logo için zorluk butonlarını devre dışı bırak
+  const diffDisable = kat === 'bayrak' || kat === 'logo';
+  document.querySelectorAll('.ed-diff-btn, .m-diff-btn').forEach(btn => {
+    btn.disabled = diffDisable;
+    btn.style.opacity = diffDisable ? '0.3' : '1';
+    btn.style.pointerEvents = diffDisable ? 'none' : 'auto';
+  });
 }
 
 function edMastheadGuncelle() {
@@ -4482,6 +3053,8 @@ function edMastheadGuncelle() {
   if (el) el.textContent = gunNo;
   const heroNo = document.getElementById('edHeroNo');
   if (heroNo) heroNo.textContent = gunNo;
+  const mHeroNo = document.getElementById('mHeroNo');
+  if (mHeroNo) mHeroNo.textContent = gunNo;
   const now = new Date();
   const dateEl = document.getElementById('edDate');
   if (dateEl) {
@@ -4521,19 +3094,16 @@ function edHeroGridDoldur() {
   let html = '';
   let denemeStr = '';
   if (kayit && kayit.tahminler && kayit.tahminler.length) {
-    const ans = kayit.cevap || '';
+    const ans = kayit.kelime || bugunkunKelime();
     const n = kayit.tahminler.length;
     denemeStr = `${n} / 6 DENEME`;
     kayit.tahminler.slice(0, 6).forEach(tahmin => {
+      const renkler = tahminRenkle(tahmin, ans);
       html += '<div class="ed-wg-row">';
       for (let i = 0; i < 5; i++) {
         const ch = (tahmin[i] || '').toUpperCase();
-        let cls = 'empty';
-        if (ch) {
-          if (ch === ans[i]) cls = 'correct';
-          else if (ans.includes(ch)) cls = 'close';
-          else cls = 'wrong';
-        }
+        const clsMap = { yesil: 'correct', sari: 'close', gri: 'wrong' };
+        const cls = ch ? (clsMap[renkler[i]] || 'wrong') : 'empty';
         html += `<div class="ed-wg-cell ${cls}">${ch}</div>`;
       }
       html += '</div>';
@@ -4552,6 +3122,16 @@ function edHeroGridDoldur() {
   container.innerHTML = html;
   const denemeEl = document.getElementById('edWgDeneme');
   if (denemeEl) denemeEl.textContent = denemeStr;
+
+  // Mobil harf önizlemesini güncelle
+  const mHarfOn = document.getElementById('mHarfOn');
+  if (mHarfOn) {
+    const oynandi = !!(kayit && kayit.tahminler && kayit.tahminler.length);
+    const dolum = oynandi ? 5 : 1;
+    mHarfOn.innerHTML = Array.from({length: 5}, (_, i) =>
+      `<div class="m-harf${i < dolum ? ' dolu' : ''}"></div>`
+    ).join('');
+  }
 
   // Countdown
   const sureEl = document.getElementById('edStatSure');
@@ -4625,48 +3205,803 @@ function edBolumlerDoldur() {
   if (!list || list.children.length) return;
   const tümKats = { ...KATEGORI_BILGI, ...(typeof KATEGORI_BILGI_EK !== 'undefined' ? KATEGORI_BILGI_EK : {}) };
   const aciklamalar = {
-    tarih: 'Antik çağlardan günümüze önemli olaylar ve şahsiyetler.',
-    sanat: 'Dünya sanatı, ressamlar, heykeller ve akımlar.',
-    spor: 'Futbol, olimpiyat, dünya rekorları ve efsaneler.',
-    cografya: 'Başkentler, nehirler, dağlar, ülkeler ve haritalar.',
-    bilim: 'Fizik, kimya, biyoloji ve büyük keşifler.',
-    sinema: 'Filmler, yönetmenler, Oscar ödülleri ve klasikler.',
-    muzik: 'Rock, klasik, pop; besteciler ve efsane albümler.',
-    teknoloji: 'İcat tarihçesi, yazılım, donanım ve innovasyon.',
-    yemek: 'Dünya mutfakları, tarifler, lezzetler ve malzemeler.',
-    edebiyat: 'Romanlar, şiirler, yazarlar ve Nobel ödülleri.',
-    mitoloji: 'Yunan, Roma, Norse ve Anadolu efsaneleri.',
-    astronomi: 'Gezegenler, yıldızlar, galaksiler ve uzay keşfi.',
-    saglik: 'Tıp, beslenme, hastalıklar ve sağlıklı yaşam.',
-    ekonomi: 'Piyasalar, ekonomik teoriler ve küresel finans.',
-    hayvanlar: 'Memeli, sürüngen, kuş ve deniz canlıları.',
-    bayrak: 'Dünya bayraklarını tanıyor musun?',
-    logo: 'Marka amblemleri ve logolar hakkında ne biliyorsun?'
+    tarih: 'Antikiteden cumhuriyete, insan hatırlar.',
+    sanat: 'Bir fırça darbesi, bir asır.',
+    spor: 'Saha içinde, saha dışında.',
+    cografya: 'Yeryüzü hâlâ büyük.',
+    bilim: 'Atomdan kozmosa, yöntem aynı kalır.',
+    sinema: 'Karanlık salon, gümüş perde.',
+    muzik: 'Telli, üflemeli, davullu hafıza.',
+    teknoloji: 'Silikon, fiber, sinyal.',
+    yemek: 'Mutfak da bir kütüphanedir.',
+    edebiyat: 'Bir cümlede çağ, bir dizede yüzyıl.',
+    mitoloji: 'Tanrılar, kahramanlar, hatalar.',
+    astronomi: 'Yıldızlar, ışık, geçen zaman.',
+    saglik: 'Beden bilir, akıl sorar.',
+    ekonomi: 'Sayıların ardındaki insan.',
+    hayvanlar: 'Evrim durmuyor, hayvanlar da.',
+    bayrak: 'Her rengin bir anlamı var.',
+    logo: 'Bir bakışta tanırsın.'
   };
-  let html = '';
+  const toplamSoru = Object.keys(tümKats).reduce((t, k) => t + edSoruSayisiHesapla(k), 0);
+  let html = `<div class="ed-kart ed-kart-karisik" onclick="edBolumSecVeOyna('all', this)">
+    <div class="ed-kart-top">
+      <span class="ed-kart-num">00</span>
+      <span class="ed-kart-ok">→</span>
+    </div>
+    <div class="ed-kart-isim">Karışık</div>
+    <div class="ed-kart-desc">Tüm kategorilerden rastgele sorular.</div>
+    <div class="ed-kart-footer">
+      <div class="ed-kart-soru"><span class="ed-kart-lbl">SORU</span><span class="ed-kart-sayi">${toplamSoru}</span></div>
+      <button class="ed-kart-btn" onclick="event.stopPropagation();edModAc('all')">OYNA</button>
+    </div>
+  </div>`;
   let i = 1;
   for (const [kat, bilgi] of Object.entries(tümKats)) {
     const desc = aciklamalar[kat] || '';
-    html += `<div class="ed-big-row" onclick="edBolumSecVeOyna('${kat}')">
-      <span class="ed-big-num">${String(i).padStart(2,'0')}</span>
-      <span class="ed-big-emoji">${bilgi.emoji}</span>
-      <div class="ed-big-info">
-        <div class="ed-big-name">${bilgi.isim}</div>
-        <div class="ed-big-desc">${desc}</div>
+    const soruSayisi = edSoruSayisiHesapla(kat);
+    html += `<div class="ed-kart" onclick="edBolumSecVeOyna('${kat}', this)">
+      <div class="ed-kart-top">
+        <span class="ed-kart-num">${String(i).padStart(2,'0')}</span>
+        <span class="ed-kart-ok">→</span>
       </div>
-      <button class="ed-big-btn" onclick="event.stopPropagation();edBolumSecVeOyna('${kat}')">OYNA →</button>
+      <div class="ed-kart-isim">${bilgi.isim}</div>
+      <div class="ed-kart-desc">${desc}</div>
+      <div class="ed-kart-footer">
+        <div class="ed-kart-soru"><span class="ed-kart-lbl">SORU</span><span class="ed-kart-sayi">${soruSayisi}</span></div>
+        <button class="ed-kart-btn" onclick="event.stopPropagation();edModAc('${kat}')">OYNA</button>
+      </div>
     </div>`;
     i++;
   }
-  const meta = document.getElementById('edBolumMeta');
-  if (meta) meta.textContent = `${Object.keys(tümKats).length} BÖLÜM`;
   list.innerHTML = html;
+  if (window.innerWidth > 640) initBolumSphere();
 }
 
-function edBolumSecVeOyna(kat) {
+function initBolumSphere() {
+  if (document.getElementById('bolumSphere')) return;
+  const list = document.getElementById('edBolumList');
+  if (!list) return;
+
+  const NO_JPG = new Set(['saglik','ekonomi','bayrak','logo']);
+  const tümKats = { ...KATEGORI_BILGI, ...(typeof KATEGORI_BILGI_EK !== 'undefined' ? KATEGORI_BILGI_EK : {}) };
+  const toplamSoru = Object.keys(tümKats).reduce((t, k) => t + edSoruSayisiHesapla(k), 0);
+
+  const katNodes = [
+    { kat: 'all', isim: 'Karışık', sayi: toplamSoru, karisik: true, img: null },
+    ...Object.entries(tümKats).map(([kat, bilgi]) => ({
+      kat, isim: bilgi.isim, sayi: edSoruSayisiHesapla(kat),
+      img: NO_JPG.has(kat) ? null : `images/${kat}.jpg`
+    }))
+  ];
+
+  const N = katNodes.length;
+  const RADIUS = 210;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+  const positions = katNodes.map((node, i) => {
+    const y = 1 - (i / (N - 1)) * 2;
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = goldenAngle * i;
+    return { ...node, ox: Math.cos(theta) * r * RADIUS, oy: y * RADIUS, oz: Math.sin(theta) * r * RADIUS };
+  });
+
+  list.className = 'ed-bolum-sphere-wrap';
+  list.innerHTML = '';
+
+  const scene = document.createElement('div');
+  scene.id = 'bolumSphere';
+  list.appendChild(scene);
+
+  // Ambient glow + halo ring
+  const glow = document.createElement('div');
+  glow.className = 'bsph-glow';
+  scene.appendChild(glow);
+  const halo = document.createElement('div');
+  halo.className = 'bsph-halo';
+  scene.appendChild(halo);
+
+  // Canvas for wireframe lines
+  const canvas = document.createElement('canvas');
+  canvas.className = 'bsph-canvas';
+  scene.appendChild(canvas);
+
+  // Pre-generate wireframe circle points (raw object-space coords)
+  const SEGS = 72;
+  const wireCircles = [];
+  for (let i = 0; i < 4; i++) {          // 4 longitude great-circles
+    const phi = (i / 4) * Math.PI;
+    const pts = [];
+    for (let j = 0; j <= SEGS; j++) {
+      const t = (j / SEGS) * Math.PI * 2;
+      pts.push([Math.cos(t) * Math.cos(phi) * RADIUS, Math.sin(t) * RADIUS, Math.cos(t) * Math.sin(phi) * RADIUS]);
+    }
+    wireCircles.push(pts);
+  }
+  for (const lat of [-0.45, 0, 0.45]) {  // 3 latitude parallels
+    const ry = lat * RADIUS, cr = Math.sqrt(RADIUS * RADIUS - ry * ry);
+    const pts = [];
+    for (let j = 0; j <= SEGS; j++) {
+      const t = (j / SEGS) * Math.PI * 2;
+      pts.push([Math.cos(t) * cr, ry, Math.sin(t) * cr]);
+    }
+    wireCircles.push(pts);
+  }
+
+  // Build node elements
+  const nodeEls = positions.map(pos => {
+    const el = document.createElement('div');
+    el.className = 'bsph-node' + (pos.karisik ? ' bsph-node-karisik' : '');
+    if (pos.img) {
+      const photo = document.createElement('div');
+      photo.className = 'bsph-photo';
+      photo.style.backgroundImage = `url('${pos.img}')`;
+      el.appendChild(photo);
+      const overlay = document.createElement('div');
+      overlay.className = 'bsph-overlay';
+      el.appendChild(overlay);
+    }
+    const nameEl = document.createElement('span');
+    nameEl.className = 'bsph-name';
+    nameEl.textContent = pos.isim;
+    el.appendChild(nameEl);
+    const cntEl = document.createElement('span');
+    cntEl.className = 'bsph-cnt';
+    cntEl.textContent = pos.sayi;
+    el.appendChild(cntEl);
+    el.dataset.ox = pos.ox;
+    el.dataset.oy = pos.oy;
+    el.dataset.oz = pos.oz;
+    el.addEventListener('click', () => { edModSeciliKat = pos.kat; edModAc(pos.kat); });
+    scene.appendChild(el);
+    return el;
+  });
+
+  let rotY = 0, rotX = 0, targetRotX = 0, hovering = false;
+  scene.addEventListener('mouseenter', () => { hovering = true; });
+  scene.addEventListener('mouseleave', () => { hovering = false; targetRotX = 0; });
+  scene.addEventListener('mousemove', e => {
+    const rect = scene.getBoundingClientRect();
+    targetRotX = ((e.clientY - rect.top) / rect.height - 0.5) * -22;
+  });
+
+  let cvW = 0, cvH = 0;
+  function syncCanvas() { cvW = canvas.width = scene.offsetWidth; cvH = canvas.height = scene.offsetHeight; }
+  syncCanvas();
+
+  function rotPt(ox, oy, oz, cosY, sinY, cosX, sinX) {
+    const x1 = ox * cosY + oz * sinY;
+    const z1 = -ox * sinY + oz * cosY;
+    const y2 = oy * cosX - z1 * sinX;
+    const z2 = oy * sinX + z1 * cosX;
+    return [x1, y2, z2];
+  }
+
+  function tick() {
+    if (!document.getElementById('bolumSphere')) return;
+    if (!hovering) rotY += 0.18;
+    rotX += (targetRotX - rotX) * 0.04;
+    const cosY = Math.cos(rotY * Math.PI / 180), sinY = Math.sin(rotY * Math.PI / 180);
+    const cosX = Math.cos(rotX * Math.PI / 180), sinX = Math.sin(rotX * Math.PI / 180);
+
+    // Node transforms
+    nodeEls.forEach(el => {
+      const [x, y, z] = rotPt(+el.dataset.ox, +el.dataset.oy, +el.dataset.oz, cosY, sinY, cosX, sinX);
+      const depth = (z + RADIUS) / (2 * RADIUS);
+      const scale = 0.5 + depth * 0.75;
+      el.style.transform = `translate(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px)) scale(${scale.toFixed(3)})`;
+      el.style.opacity = (0.15 + depth * 0.85).toFixed(3);
+      el.style.zIndex = Math.round(depth * 100);
+    });
+
+    // Wireframe canvas
+    if (!cvW) syncCanvas();
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, cvW, cvH);
+    const cx = cvW / 2, cy = cvH / 2;
+    wireCircles.forEach(pts => {
+      ctx.beginPath();
+      pts.forEach(([ox, oy, oz], i) => {
+        const [sx, sy] = rotPt(ox, oy, oz, cosY, sinY, cosX, sinX);
+        i === 0 ? ctx.moveTo(cx + sx, cy + sy) : ctx.lineTo(cx + sx, cy + sy);
+      });
+      const [,,mz] = rotPt(...pts[Math.floor(pts.length / 2)], cosY, sinY, cosX, sinX);
+      const d = (mz + RADIUS) / (2 * RADIUS);
+      ctx.strokeStyle = `rgba(255,255,255,${(0.018 + d * 0.065).toFixed(3)})`;
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+    });
+
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+let edModSeciliKat = null;
+
+function edModAc(kat) {
+  edModSeciliKat = kat;
+  const tümKats = { ...KATEGORI_BILGI, ...(typeof KATEGORI_BILGI_EK !== 'undefined' ? KATEGORI_BILGI_EK : {}) };
+  const katAdi = kat === 'all' ? 'Karışık' : (tümKats[kat]?.isim || kat);
+  document.getElementById('edModKatAdi').textContent = katAdi.toUpperCase();
+  document.querySelectorAll('.ed-mod-kart').forEach(k => k.classList.remove('selected'));
+  document.querySelector('.ed-mod-kart[data-mod="klasik"]').classList.add('selected');
+  oyunModu = 'klasik';
+  document.getElementById('edModPanel').style.display = 'flex';
+}
+
+function edBolumSecVeOyna(kat, el) {
+  // Zaten seçili olan karta ikinci kez basıldı → overlay aç
+  if (edModSeciliKat === kat) {
+    edModAc(kat);
+    return;
+  }
+  // İlk basış: kartı seç, overlay açma
+  document.querySelectorAll('.ed-kart').forEach(k => k.classList.remove('ed-kart-aktif'));
+  if (el) el.classList.add('ed-kart-aktif');
+  edModSeciliKat = kat;
+}
+
+function edModSecKart(mod, el) {
+  oyunModu = mod;
+  document.querySelectorAll('.ed-mod-kart').forEach(k => k.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function edModKapat(e) {
+  if (e && e.target !== document.getElementById('edModPanel')) return;
+  document.getElementById('edModPanel').style.display = 'none';
+  document.querySelectorAll('.ed-kart').forEach(k => k.classList.remove('ed-kart-aktif'));
+  edModSeciliKat = null;
+}
+
+function edModBasla() {
+  document.getElementById('edModPanel').style.display = 'none';
   const bugunBtn = document.querySelector('.ed-tab-btn');
   edTabSec('bugun', bugunBtn);
-  setTimeout(() => { edKategoriSec(kat); baslat(); }, 80);
+  setTimeout(() => { edKategoriSec(edModSeciliKat); baslat(); }, 80);
+}
+
+// ════════════════════════════════════════
+// ATÖLYE
+// ════════════════════════════════════════
+
+function atAc(araç) {
+  const paneller = { pomodoro: 'atPomodoro', not: 'atNot', ses: 'atSes', sinav: 'atSinav', calisma: 'atCalisma' };
+  const btnler   = { pomodoro: 'atPomodoroKart', not: 'atNotKart', ses: 'atSesKart', sinav: 'atSinavKart', calisma: 'atCalismaKart' };
+  Object.entries(paneller).forEach(([key, id]) => {
+    const panel = document.getElementById(id);
+    const kart  = document.getElementById(btnler[key]);
+    if (!panel) return;
+    const acik = panel.style.display !== 'none';
+    const btn = kart?.querySelector('.at-ac-btn');
+    if (key === araç) {
+      const yeniAcik = !acik;
+      panel.style.display = yeniAcik ? '' : 'none';
+      kart?.classList.toggle('at-kart-acik', yeniAcik);
+      if (btn) btn.textContent = yeniAcik ? 'KAPA ×' : 'AÇ →';
+      if (key === 'not' && yeniAcik) notYukle();
+      if (key === 'sinav' && yeniAcik) sinavGoster();
+      if (key === 'calisma' && yeniAcik) calismaGoster();
+    } else {
+      panel.style.display = 'none';
+      kart?.classList.remove('at-kart-acik');
+      if (btn) btn.textContent = 'AÇ →';
+    }
+  });
+}
+
+// ── Pomodoro ──
+const POM_SURELER = { calis: 25 * 60, kisa: 5 * 60, uzun: 15 * 60 };
+let pomMod = 'calis';
+let pomKalan = POM_SURELER.calis;
+let pomToplamSure = POM_SURELER.calis;
+let pomTimer = null;
+let pomCalisiyor = false;
+
+function pomModSec(mod, btn) {
+  pomDurdur();
+  pomMod = mod;
+  pomKalan = POM_SURELER[mod];
+  pomToplamSure = POM_SURELER[mod];
+  document.querySelectorAll('.at-pom-mod').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  pomGuncelle();
+}
+
+function pomBaslat() {
+  if (pomCalisiyor) {
+    pomDurdur();
+  } else {
+    pomCalisiyor = true;
+    document.getElementById('pomBaslatBtn').textContent = 'DURAKLAT';
+    pomFsBtnGuncelle();
+    pomTimer = setInterval(() => {
+      pomKalan--;
+      pomGuncelle();
+      if (pomKalan <= 0) {
+        pomDurdur();
+        pomKalan = 0;
+        pomGuncelle();
+        sesTomHepsiDurdur();
+      }
+    }, 1000);
+  }
+}
+
+function pomDurdur() {
+  clearInterval(pomTimer);
+  pomCalisiyor = false;
+  document.getElementById('pomBaslatBtn').textContent = 'BAŞLAT';
+  pomFsBtnGuncelle();
+}
+
+function pomSifirla() {
+  pomDurdur();
+  pomKalan = POM_SURELER[pomMod];
+  pomToplamSure = POM_SURELER[pomMod];
+  pomGuncelle();
+}
+
+function pomGuncelle() {
+  const dak = String(Math.floor(pomKalan / 60)).padStart(2, '0');
+  const san = String(pomKalan % 60).padStart(2, '0');
+  const str = `${dak}:${san}`;
+  const pct = `${(pomKalan / pomToplamSure) * 100}%`;
+  const el = document.getElementById('pomSure');    if (el) el.textContent = str;
+  const bar = document.getElementById('pomBar');    if (bar) bar.style.width = pct;
+  const fsEl = document.getElementById('pomFsSure'); if (fsEl) fsEl.textContent = str;
+  const fsBar = document.getElementById('pomFsBar'); if (fsBar) fsBar.style.width = pct;
+  document.title = pomCalisiyor ? `${str} — Pomodoro` : document.title.replace(/^\d{2}:\d{2}.*?—\s*/, '');
+}
+
+function pomTamEkranAc() {
+  const ov = document.getElementById('pomFsOverlay');
+  if (!ov) return;
+  ov.style.display = 'flex';
+  pomFsBtnGuncelle();
+  pomFsModGuncelle();
+  pomGuncelle();
+}
+
+function pomTamEkranKapat() {
+  const ov = document.getElementById('pomFsOverlay');
+  if (ov) ov.style.display = 'none';
+}
+
+function pomFsBtnGuncelle() {
+  const btn = document.getElementById('pomFsBaslatBtn');
+  if (btn) btn.textContent = pomCalisiyor ? 'DURAKLAT' : 'BAŞLAT';
+}
+
+function pomFsModGuncelle() {
+  document.querySelectorAll('.pom-fs-mod').forEach(b => {
+    b.classList.toggle('selected', b.onclick?.toString().includes(`'${pomMod}'`));
+  });
+}
+
+// ── Not Defteri ──
+function notYukle() {
+  const alan = document.getElementById('atNotAlan');
+  if (!alan) return;
+  alan.value = localStorage.getItem('bm_not') || '';
+  notSayacGuncelle();
+}
+
+function notKaydet() {
+  const alan = document.getElementById('atNotAlan');
+  if (!alan) return;
+  localStorage.setItem('bm_not', alan.value);
+  notSayacGuncelle();
+  const durum = document.getElementById('atNotDurum');
+  if (durum) { durum.textContent = 'Kaydedildi ✓'; setTimeout(() => { durum.textContent = ''; }, 1500); }
+}
+
+function notSayacGuncelle() {
+  const alan = document.getElementById('atNotAlan');
+  const sayac = document.getElementById('atNotSayac');
+  if (alan && sayac) sayac.textContent = `${alan.value.length} karakter`;
+}
+
+// ── Quiz Müziği ──
+let _qMuzik = null;
+let _qMuzikSusturoldu = false;
+let _qMuzikFadeTimer = null;
+
+function quizMuzikBaslat() {
+  if (_qMuzikSusturoldu) return;
+  if (!_qMuzik) {
+    _qMuzik = new Audio('sounds/muzik.mp3');
+    _qMuzik.loop = true;
+    _qMuzik.volume = 0;
+  }
+  clearInterval(_qMuzikFadeTimer);
+  _qMuzik.play().catch(() => {});
+  let v = _qMuzik.volume;
+  _qMuzikFadeTimer = setInterval(() => {
+    v = Math.min(0.35, v + 0.02);
+    _qMuzik.volume = v;
+    if (v >= 0.35) clearInterval(_qMuzikFadeTimer);
+  }, 80);
+  _qMuzikBtnGuncelle();
+}
+
+function quizMuzikDurdur() {
+  if (!_qMuzik) return;
+  clearInterval(_qMuzikFadeTimer);
+  let v = _qMuzik.volume;
+  _qMuzikFadeTimer = setInterval(() => {
+    v = Math.max(0, v - 0.03);
+    _qMuzik.volume = v;
+    if (v <= 0) {
+      clearInterval(_qMuzikFadeTimer);
+      _qMuzik.pause();
+      _qMuzik.currentTime = 0;
+    }
+  }, 60);
+}
+
+function quizMuzikToggle() {
+  _qMuzikSusturoldu = !_qMuzikSusturoldu;
+  if (_qMuzikSusturoldu) {
+    quizMuzikDurdur();
+  } else {
+    quizMuzikBaslat();
+  }
+  _qMuzikBtnGuncelle();
+}
+
+function _qMuzikBtnGuncelle() {
+  const btn = document.getElementById('qzMuzikBtn');
+  if (!btn) return;
+  btn.textContent = _qMuzikSusturoldu ? '🔇' : '🎵';
+  btn.classList.toggle('susturuldu', _qMuzikSusturoldu);
+}
+
+// ── Ses Ortamı ──
+// Dosya bazlı sesler (gerçek kayıt): yagmur, okyanus, firtina, ates
+// Synthesis bazlı sesler: ruzgar, beyaz, pembe, kahve
+const SES_DOSYALI = ['yagmur', 'okyanus', 'firtina', 'ates'];
+const sesAktif = {};
+const sesVolumes = { yagmur: 60, okyanus: 60, ruzgar: 60, firtina: 60, ates: 60, beyaz: 60, pembe: 60, kahve: 60 };
+const sesAudioEls = {};
+
+// ─ Dosya bazlı ─
+function sesBaslatDosya(id) {
+  if (!sesAudioEls[id]) {
+    const a = new Audio(`sounds/${id}.wav`);
+    a.loop = true;
+    a.preload = 'auto';
+    sesAudioEls[id] = a;
+  }
+  const a = sesAudioEls[id];
+  a.volume = (sesVolumes[id] ?? 60) / 100;
+  a.play().catch(() => {});
+  sesAktif[id] = { type: 'file' };
+}
+
+function sesDurdurDosya(id) {
+  const a = sesAudioEls[id];
+  if (!a) return;
+  a.pause();
+  a.currentTime = 0;
+  delete sesAktif[id];
+}
+
+// ─ Synthesis bazlı (beyaz/pembe/kahve) ─
+let sesCtx = null;
+
+function _sesNoiseBuf() {
+  const sr = sesCtx.sampleRate;
+  const buf = sesCtx.createBuffer(1, sr * 4, sr);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+function sesBaslatSynth(id) {
+  if (!sesCtx) sesCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (sesCtx.state === 'suspended') sesCtx.resume();
+  if (sesAktif[id]) return;
+
+  const gainNode = sesCtx.createGain();
+  gainNode.gain.value = 0;
+  gainNode.connect(sesCtx.destination);
+
+  const src = sesCtx.createBufferSource();
+  src.buffer = _sesNoiseBuf();
+  src.loop = true;
+
+  if (id === 'beyaz') {
+    src.connect(gainNode);
+  } else if (id === 'pembe') {
+    const f = sesCtx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 2200; f.Q.value = 0.5;
+    src.connect(f); f.connect(gainNode);
+  } else if (id === 'kahve') {
+    const f1 = sesCtx.createBiquadFilter();
+    f1.type = 'lowpass'; f1.frequency.value = 150;
+    const f2 = sesCtx.createBiquadFilter();
+    f2.type = 'lowpass'; f2.frequency.value = 150;
+    src.connect(f1); f1.connect(f2); f2.connect(gainNode);
+  } else if (id === 'ruzgar') {
+    const bp = sesCtx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 1.5;
+    const wg = sesCtx.createGain(); wg.gain.value = 1;
+    src.connect(bp); bp.connect(wg); wg.connect(gainNode);
+    const lfo = sesCtx.createOscillator();
+    const lfoG = sesCtx.createGain(); lfoG.gain.value = 0.5;
+    lfo.frequency.value = 0.07;
+    lfo.connect(lfoG); lfoG.connect(wg.gain);
+    lfo.start();
+    sesAktif[id] = { type: 'synth', src, gainNode, lfo };
+    src.start();
+    gainNode.gain.setTargetAtTime((sesVolumes[id] ?? 60) / 100, sesCtx.currentTime, 0.3);
+    return;
+  }
+
+  src.start();
+  gainNode.gain.setTargetAtTime((sesVolumes[id] ?? 60) / 100, sesCtx.currentTime, 0.3);
+  sesAktif[id] = { type: 'synth', src, gainNode };
+}
+
+function sesDurdurSynth(id) {
+  const n = sesAktif[id];
+  if (!n) return;
+  delete sesAktif[id];
+  n.gainNode.gain.setTargetAtTime(0, sesCtx.currentTime, 0.3);
+  setTimeout(() => {
+    try { n.src.stop(); } catch(e) {}
+    if (n.lfo) { try { n.lfo.stop(); } catch(e) {} }
+  }, 600);
+}
+
+// ─ Ortak API ─
+function sesBaslat(id) {
+  if (SES_DOSYALI.includes(id)) sesBaslatDosya(id);
+  else sesBaslatSynth(id);
+}
+
+function sesDurdur(id) {
+  if (SES_DOSYALI.includes(id)) sesDurdurDosya(id);
+  else sesDurdurSynth(id);
+}
+
+function sesToggle(id, btn) {
+  if (sesAktif[id]) {
+    sesDurdur(id);
+    btn?.classList.remove('ses-aktif');
+  } else {
+    sesBaslat(id);
+    btn?.classList.add('ses-aktif');
+  }
+}
+
+function sesVolume(id, val) {
+  sesVolumes[id] = +val;
+  if (!sesAktif[id]) return;
+  if (SES_DOSYALI.includes(id)) {
+    if (sesAudioEls[id]) sesAudioEls[id].volume = +val / 100;
+  } else if (sesCtx) {
+    sesAktif[id].gainNode.gain.setTargetAtTime(+val / 100, sesCtx.currentTime, 0.05);
+  }
+}
+
+function sesTomHepsiDurdur() {
+  Object.keys({ ...sesAktif }).forEach(id => {
+    sesDurdur(id);
+    const btn = document.getElementById('sesBtn-' + id);
+    btn?.classList.remove('ses-aktif');
+  });
+}
+
+// ── Ders Programı ──
+const DP_GUNLER = [
+  { ad: 'Pazartesi', kisa: 'PZT' },
+  { ad: 'Salı',      kisa: 'SAL' },
+  { ad: 'Çarşamba',  kisa: 'ÇAR' },
+  { ad: 'Perşembe',  kisa: 'PER' },
+  { ad: 'Cuma',      kisa: 'CUM' },
+  { ad: 'Cumartesi', kisa: 'CTS' },
+  { ad: 'Pazar',     kisa: 'PZR' },
+];
+
+function dersProgramiAc() {
+  const overlay = document.getElementById('dpOverlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  dersProgramiGoster();
+}
+
+function dersProgramiKapat() {
+  if (window.STANDALONE) {
+    window.parent.postMessage('oyunKapat', '*');
+    return;
+  }
+  document.getElementById('dpOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function dersProgramiGoster() {
+  const el = document.getElementById('dpIcerik');
+  if (!el) return;
+  const program = JSON.parse(localStorage.getItem('bm_ders_programi') || '{}');
+  const bugunIndex = (new Date().getDay() + 6) % 7;
+  el.innerHTML = DP_GUNLER.map((g, gi) => {
+    const dersler = program[g.ad] || [];
+    const bugun = gi === bugunIndex;
+    return `<div class="dp-gun${bugun ? ' dp-gun-bugun' : ''}">
+      <div class="dp-gun-baslik">${g.kisa}${bugun ? ' ·' : ''}</div>
+      <div class="dp-gun-dersler">
+        ${dersler.length
+          ? dersler.map((d, i) => `
+              <div class="dp-ders">
+                <span class="dp-ders-saat">${d.saat}</span>
+                <span class="dp-ders-ad">${d.ad}</span>
+                <button class="dp-ders-sil" onclick="dersSil(${gi},${i})">✕</button>
+              </div>`).join('')
+          : '<div class="dp-bos">—</div>'}
+      </div>
+      <div class="dp-ekle-wrap">
+        <input class="dp-saat-input" id="dpS${gi}" type="time" value="09:00">
+        <input class="dp-ad-input"   id="dpA${gi}" type="text" placeholder="Ders adı" maxlength="28"
+          onkeydown="if(event.key==='Enter') dersEkle(${gi})">
+        <button class="dp-ekle-btn" onclick="dersEkle(${gi})">+ EKLE</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function dersEkle(gi) {
+  const saat = document.getElementById(`dpS${gi}`).value || '09:00';
+  const ad   = document.getElementById(`dpA${gi}`).value.trim();
+  if (!ad) return;
+  const gun  = DP_GUNLER[gi].ad;
+  const program = JSON.parse(localStorage.getItem('bm_ders_programi') || '{}');
+  if (!program[gun]) program[gun] = [];
+  program[gun].push({ saat, ad });
+  program[gun].sort((a, b) => a.saat.localeCompare(b.saat));
+  localStorage.setItem('bm_ders_programi', JSON.stringify(program));
+  dersProgramiGoster();
+}
+
+function dersSil(gi, index) {
+  const gun  = DP_GUNLER[gi].ad;
+  const program = JSON.parse(localStorage.getItem('bm_ders_programi') || '{}');
+  if (program[gun]) program[gun].splice(index, 1);
+  localStorage.setItem('bm_ders_programi', JSON.stringify(program));
+  dersProgramiGoster();
+}
+
+// ── Sınav Geri Sayımı ──
+const SINAVLAR = [
+  { ad: 'LGS',       tarihler: ['2026-06-07', '2027-06-06'] },
+  { ad: 'YKS / TYT', tarihler: ['2026-06-20', '2027-06-19'] },
+  { ad: 'YKS / AYT', tarihler: ['2026-06-21', '2027-06-20'] },
+  { ad: 'DGS',       tarihler: ['2026-07-19', '2027-07-18'] },
+  { ad: 'YDS',       tarihler: ['2026-09-27', '2027-09-26'] },
+  { ad: 'KPSS',      tarihler: ['2026-10-18', '2027-10-17'] },
+  { ad: 'ALES',      tarihler: ['2026-11-08', '2027-11-07'] },
+];
+
+function sinavGoster() {
+  const el = document.getElementById('atSinavListe');
+  if (!el) return;
+  const bugun = new Date(); bugun.setHours(0, 0, 0, 0);
+  el.innerHTML = SINAVLAR.map(s => {
+    const tarihStr = s.tarihler.find(d => new Date(d + 'T00:00:00') >= bugun)
+      || s.tarihler[s.tarihler.length - 1];
+    const t = new Date(tarihStr + 'T00:00:00');
+    const gun = Math.ceil((t - bugun) / 86400000);
+    const gecti = gun < 0;
+    const etiket = t.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+    return `<div class="sinav-satir${gecti ? ' sinav-gecti' : ''}">
+      <span class="sinav-satir-ad">${s.ad}</span>
+      <span class="sinav-satir-tarih">${etiket}</span>
+      <span class="sinav-satir-gun">${gecti ? 'GEÇTİ' : gun}</span>
+      ${gecti ? '' : '<span class="sinav-satir-lbl">GÜN</span>'}
+    </div>`;
+  }).join('');
+}
+
+// ── Çalışma Günlüğü ──
+function calismaEkle() {
+  const konu = document.getElementById('atCalismaKonu').value.trim();
+  if (!konu) return;
+  const sure = parseInt(document.getElementById('atCalismaSure').value) || 0;
+  const tarih = new Date().toISOString().slice(0, 10);
+  const kayitlar = JSON.parse(localStorage.getItem('bm_calisma') || '[]');
+  kayitlar.push({ tarih, konu, sure, ts: Date.now() });
+  localStorage.setItem('bm_calisma', JSON.stringify(kayitlar));
+  document.getElementById('atCalismaKonu').value = '';
+  document.getElementById('atCalismaSure').value = '';
+  calismaGoster();
+}
+
+function calismaSil(ts) {
+  let kayitlar = JSON.parse(localStorage.getItem('bm_calisma') || '[]');
+  kayitlar = kayitlar.filter(k => k.ts !== ts);
+  localStorage.setItem('bm_calisma', JSON.stringify(kayitlar));
+  calismaGoster();
+}
+
+function calismaGoster() {
+  const kayitlar = JSON.parse(localStorage.getItem('bm_calisma') || '[]');
+  const bugun = new Date().toISOString().slice(0, 10);
+  const bugunKayitlar = kayitlar.filter(k => k.tarih === bugun);
+  const listeEl = document.getElementById('atCalismaListe');
+  const ozetEl  = document.getElementById('atCalismaOzet');
+  if (!listeEl) return;
+  if (bugunKayitlar.length === 0) {
+    listeEl.innerHTML = '<div class="at-calisma-bos">Bugün henüz kayıt yok.</div>';
+    ozetEl.textContent = '';
+    return;
+  }
+  listeEl.innerHTML = bugunKayitlar.map(k =>
+    `<div class="at-calisma-kayit">
+      <span class="at-calisma-konu">${k.konu}</span>
+      <span class="at-calisma-sure-lbl">${k.sure ? k.sure + ' dk' : '—'}</span>
+      <button class="at-calisma-sil" onclick="calismaSil(${k.ts})">✕</button>
+    </div>`
+  ).join('');
+  const toplamDk = bugunKayitlar.reduce((a, k) => a + (k.sure || 0), 0);
+  const saatStr = toplamDk >= 60
+    ? `${Math.floor(toplamDk / 60)} sa ${toplamDk % 60} dk`
+    : `${toplamDk} dk`;
+  ozetEl.textContent = `Bugün: ${bugunKayitlar.length} konu · ${saatStr}`;
+}
+
+function calismaGecmisToggle() {
+  const el = document.getElementById('atCalismaGecmis');
+  const btn = document.getElementById('atCalismaGecmisBtn');
+  const acik = el.style.display !== 'none';
+  el.style.display = acik ? 'none' : '';
+  if (btn) btn.textContent = acik ? 'GEÇMİŞ →' : 'GEÇMİŞİ GİZLE ↑';
+  if (!acik) calismaGecmisGoster();
+}
+
+function calismaGecmisGoster() {
+  const kayitlar = JSON.parse(localStorage.getItem('bm_calisma') || '[]');
+  const bugun = new Date().toISOString().slice(0, 10);
+  const gecmis = {};
+  kayitlar.filter(k => k.tarih !== bugun).forEach(k => {
+    if (!gecmis[k.tarih]) gecmis[k.tarih] = [];
+    gecmis[k.tarih].push(k);
+  });
+  const tarihler = Object.keys(gecmis).sort().reverse().slice(0, 14);
+  const el = document.getElementById('atCalismaGecmis');
+  if (!tarihler.length) { el.innerHTML = '<div class="at-calisma-bos">Geçmiş kayıt yok.</div>'; return; }
+  el.innerHTML = tarihler.map(t => {
+    const g = gecmis[t];
+    const dk = g.reduce((a, k) => a + (k.sure || 0), 0);
+    const label = new Date(t + 'T00:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+    return `<div class="gecmis-gun">
+      <div class="gecmis-gun-baslik">${label} · ${dk ? dk + ' dk' : g.length + ' konu'}</div>
+      ${g.map(k => `<div class="gecmis-kayit">${k.konu}${k.sure ? ' · ' + k.sure + ' dk' : ''}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function ktIstatistikGoster() {
+  const kayit = JSON.parse(localStorage.getItem('bm_fc_ilerleme') || '{}');
+  const bugun = new Date().toISOString().slice(0, 10);
+  const bugunkuBildi = kayit[bugun]?.bildi ?? '—';
+  const seri = (function() {
+    let s = 0, d = new Date();
+    while (true) {
+      const k = d.toISOString().slice(0, 10);
+      if (!kayit[k]) break;
+      s++; d.setDate(d.getDate() - 1);
+    }
+    return s || '—';
+  })();
+  const toplam = typeof FLASHCARD_HAVUZU !== 'undefined' ? FLASHCARD_HAVUZU.length : '—';
+  const seriEl = document.getElementById('ktSeriEl');
+  const bugunkuEl = document.getElementById('ktBugunkuEl');
+  const toplamEl = document.getElementById('ktToplamEl');
+  if (seriEl) seriEl.textContent = seri;
+  if (bugunkuEl) bugunkuEl.textContent = bugunkuBildi;
+  if (toplamEl) toplamEl.textContent = toplam;
 }
 
 function edArsivDoldur() {
@@ -4717,6 +4052,21 @@ function mCatListDoldur() {
   // mEdHeroNo
   const mNo = document.getElementById('mEdHeroNo');
   if (mNo) mNo.textContent = wordleGunNo();
+
+  // m-harf-on: bugünkü oyunun ilk tahmini varsa göster
+  const harfOn = document.getElementById('mHarfOn');
+  if (harfOn) {
+    const gunNo = wordleGunNo();
+    const saved = localStorage.getItem('wordle_' + gunNo);
+    const tahminler = saved ? JSON.parse(saved) : [];
+    const ilk = tahminler[0] || '';
+    const harfler = harfOn.querySelectorAll('.m-harf');
+    harfler.forEach((el, i) => {
+      const harf = ilk[i] || '';
+      el.textContent = harf || '·';
+      el.classList.toggle('dolu', !!harf);
+    });
+  }
 }
 
 function edBaslat() {

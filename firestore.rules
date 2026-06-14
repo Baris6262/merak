@@ -3,39 +3,25 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /scores/{scoreId} {
-      // Herkes liderboard'u okuyabilir
       allow read: if true;
 
-      // Sadece oturum açmış kullanıcılar, geçerli skor aralığıyla yeni kayıt ekleyebilir
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid
-
-        // puan: 0–12000 arası integer
         && request.resource.data.puan is int
         && request.resource.data.puan >= 0
         && request.resource.data.puan <= 12000
-
-        // dogru cevap sayısı: 0–toplam arası
         && request.resource.data.dogru is int
         && request.resource.data.dogru >= 0
         && request.resource.data.dogru <= request.resource.data.toplam
-
-        // toplam soru sayısı: 1–20 arası
         && request.resource.data.toplam is int
         && request.resource.data.toplam >= 1
         && request.resource.data.toplam <= 20
-
-        // isim: max 50 karakter string
         && request.resource.data.isim is string
         && request.resource.data.isim.size() <= 50
-
-        // zorluk: sadece izinli değerler
-        && request.resource.data.zorluk in ['kolay', 'orta', 'zor']
-
-        // Sunucu timestamp zorunlu (client timestamp kabul edilmez)
+        && request.resource.data.zorluk is string
+        && request.resource.data.zorluk.size() > 0
         && request.resource.data.tarih == request.time;
 
-      // Güncelleme ve silme yasak
       allow update, delete: if false;
     }
 
@@ -61,7 +47,10 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Diğer tüm koleksiyonlar varsayılan olarak kapalı
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  window.STANDALONE = new URLSearchParams(location.search).get('standalone');
+  function _mobilKontrol() {
+    if (window.top === window && window.innerWidth <= 640 && !window.STANDALONE) {
+      window.location.replace('portal.html');
+    }
+  }
+  _mobilKontrol();
+  window.addEventListener('resize', _mobilKontrol);
+</script>
 
 <!-- ─── Temel SEO ─── -->
 <title>Merak | Türkçe Bilgi Yarışması & Trivia Quiz</title>
@@ -10,6 +20,15 @@
 <meta name="keywords" content="merak, bilgi yarışması, türkçe quiz, trivia, bilgi testi, online quiz, tarih soruları, bilim soruları, spor quiz, genel kültür">
 <meta name="author" content="Merak">
 <meta name="robots" content="index, follow">
+<meta name="google-site-verification" content="EpA2rAB9s1CeRJQubWXU-nw7tKcfjlrjA5uw4EaqX2g">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M7VY9KSZER"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-M7VY9KSZER');
+</script>
 <link rel="canonical" href="https://merak.io/">
 
 <!-- ─── Open Graph (WhatsApp, Facebook önizleme) ─── -->
@@ -60,7 +79,7 @@
 }
 </script>
 
-<meta name="theme-color" content="#F2EDE3">
+<meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Merak">
@@ -68,38 +87,191 @@
 <link rel="icon" href="favicon-96.png" sizes="96x96" type="image/png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style id="auth-split-styles">
+/* ── AUTH SPLIT SCREEN v2 — inline (network-first) ── */
+#authScreen { display:none; }
+#authScreen.active {
+  display:flex !important; flex-direction:row !important; position:fixed !important;
+  inset:0 !important; overflow:hidden !important; padding:0 !important;
+  background:#0a0a0a !important; min-height:unset !important; align-items:unset !important;
+}
+/* ─ İki foto panel ─ */
+.auth-p {
+  position:relative; overflow:hidden;
+  transition:flex 0.85s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.auth-p-l { flex:1.6 0 0; }
+.auth-p-r { flex:1 0 0; cursor:pointer; }
+#authScreen.auth-mod-kayit .auth-p-l { flex:1 0 0; cursor:pointer; }
+#authScreen.auth-mod-kayit .auth-p-r { flex:1.6 0 0; cursor:default; }
+.auth-pbg {
+  position:absolute; inset:-5%; background-size:cover; background-position:center;
+  transition:filter 0.85s ease;
+}
+.auth-p-l .auth-pbg { filter:brightness(0.62) saturate(1.2); }
+.auth-p-r .auth-pbg { filter:brightness(0.4) saturate(1.0); }
+#authScreen.auth-mod-kayit .auth-p-l .auth-pbg { filter:brightness(0.4) saturate(1.0); }
+#authScreen.auth-mod-kayit .auth-p-r .auth-pbg { filter:brightness(0.62) saturate(1.2); }
+.auth-pgrad {
+  position:absolute; inset:0; z-index:1;
+  background:linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
+}
+.auth-pgrad-r { background:linear-gradient(to left, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%); }
+/* Panel alt bilgi */
+.auth-pinfo {
+  position:absolute; bottom:48px; left:40px; right:40px; z-index:2; transition:opacity 0.5s;
+}
+.auth-pinfo-r { text-align:right; }
+.auth-ptag {
+  display:block; font-family:'JetBrains Mono',monospace; font-size:0.6rem;
+  color:rgba(255,215,0,0.65); letter-spacing:0.15em; margin-bottom:14px; transition:opacity 0.5s;
+}
+.auth-ptitle {
+  font-family:'Space Grotesk',sans-serif; font-size:clamp(1.8rem,3vw,3.6rem); font-weight:900;
+  line-height:1.02; letter-spacing:-0.04em; color:#fff; margin:0 0 10px;
+}
+.auth-pstat { font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:rgba(255,255,255,0.25); letter-spacing:0.08em; }
+/* Pasif panel yazısı */
+.auth-phint {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3;
+  font-family:'Space Grotesk',sans-serif; font-size:0.85rem; font-weight:700;
+  color:rgba(255,255,255,0.35); letter-spacing:0.12em; text-align:center; pointer-events:none;
+  opacity:0; transition:opacity 0.5s; white-space:nowrap;
+}
+.auth-p-r .auth-phint { opacity:1; }
+#authScreen.auth-mod-kayit .auth-p-r .auth-phint { opacity:0; }
+#authScreen.auth-mod-kayit .auth-p-l .auth-phint { opacity:1; }
+/* ─ Divider çizgi ─ */
+.auth-divline {
+  position:absolute; top:0; bottom:0; width:1px; z-index:20; pointer-events:none;
+  background:linear-gradient(to bottom, transparent 0%, rgba(255,215,0,0.35) 15%, rgba(255,215,0,0.35) 85%, transparent 100%);
+  transition:left 0.85s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.auth-divlogo {
+  position:absolute; top:32px; left:50%; transform:translateX(-50%);
+  font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:900; letter-spacing:-0.02em;
+  color:rgba(255,255,255,0.88); background:rgba(10,10,10,0.85); border:1px solid rgba(255,215,0,0.2);
+  padding:5px 13px; border-radius:7px; backdrop-filter:blur(14px); white-space:nowrap;
+}
+.auth-divlogo span { color:#FFD700; }
+/* ─ Yüzen form kartı ─ */
+.auth-fcard {
+  position:absolute; top:50%; transform:translate(-50%,-50%); z-index:30;
+  width:360px; background:rgba(0,0,0,0.42); border:none;
+  border-left:1px solid rgba(255,255,255,0.07);
+  border-right:1px solid rgba(255,255,255,0.07);
+  border-radius:2px; padding:40px 36px 32px;
+  backdrop-filter:blur(48px) saturate(1.4);
+  box-shadow:0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+  transition:left 0.85s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+/* Üst altın şerit */
+.auth-fcard::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(to right, transparent, rgba(255,215,0,0.7), transparent);
+}
+.auth-fback {
+  position:absolute; top:16px; right:18px; background:none; border:none;
+  color:rgba(255,255,255,0.28); font-family:'JetBrains Mono',monospace; font-size:0.65rem;
+  font-weight:600; letter-spacing:0.12em; cursor:pointer; transition:color 0.2s;
+}
+.auth-fback:hover { color:rgba(255,255,255,0.7); }
+/* Mod etiketi */
+.auth-fmod {
+  display:block; font-family:'JetBrains Mono',monospace; font-size:0.6rem;
+  font-weight:600; letter-spacing:0.18em; color:rgba(255,215,0,0.7);
+  margin-bottom:12px;
+}
+.auth-ftitle {
+  font-family:'Space Grotesk',sans-serif; font-size:2.6rem; font-weight:900;
+  letter-spacing:-0.04em; color:#fff; margin:0 0 28px; line-height:0.95;
+}
+/* Google butonu */
+.auth-fgoogle {
+  width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:11px; background:rgba(255,255,255,0.95); border:none; border-radius:4px; color:#222;
+  font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer;
+  transition:background 0.2s; margin-bottom:18px;
+}
+.auth-fgoogle:hover { background:#fff; }
+.auth-for {
+  display:flex; align-items:center; gap:12px; margin-bottom:16px;
+  color:rgba(255,255,255,0.18); font-size:0.68rem; font-family:'JetBrains Mono',monospace; letter-spacing:0.1em;
+}
+.auth-for::before,.auth-for::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.08); }
+/* Alt çizgili minimal input'lar */
+.auth-finput {
+  width:100%; padding:11px 0; margin-bottom:14px; box-sizing:border-box;
+  background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.18);
+  border-radius:0; color:#fff; font-family:'Inter',sans-serif; font-size:0.9rem;
+  transition:border-color 0.2s;
+}
+.auth-finput:focus { outline:none; border-bottom-color:#FFD700; }
+.auth-finput::placeholder { color:rgba(255,255,255,0.25); }
+.auth-fsubmit {
+  width:100%; padding:14px; background:#FFD700; border:none; border-radius:3px;
+  color:#000; font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:900;
+  letter-spacing:0.08em; cursor:pointer; transition:filter 0.2s; margin-top:8px; margin-bottom:14px;
+}
+.auth-fsubmit:hover { filter:brightness(1.08); }
+.auth-fsubmit:disabled { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.3); cursor:not-allowed; filter:none; }
+.auth-fmisafir {
+  display:block; width:100%; text-align:center; background:none; border:none;
+  color:rgba(255,255,255,0.18); font-family:'JetBrains Mono',monospace; font-size:0.7rem;
+  letter-spacing:0.06em; cursor:pointer; transition:color 0.2s;
+}
+.auth-fmisafir:hover { color:rgba(255,255,255,0.45); }
+.auth-fcard .auth-error {
+  display:none; color:#ff6b6b; font-size:0.78rem; margin-bottom:10px;
+  padding:8px 12px; background:rgba(255,80,80,0.08); border-left:2px solid #ff6b6b;
+  font-family:'Inter',sans-serif;
+}
+@media (max-width:640px) {
+  #authScreen.active { flex-direction:column !important; }
+  .auth-p-l,.auth-p-r,.auth-p-l.auth-mod-kayit,.auth-p-r.auth-mod-kayit { flex:unset !important; }
+  .auth-p-l { height:42vh; flex-shrink:0 !important; }
+  .auth-p-r { flex:1 !important; cursor:default !important; }
+  .auth-divline,.auth-divlogo { display:none !important; }
+  .auth-fcard { position:fixed; top:auto; bottom:0; left:0 !important; right:0; transform:none;
+    width:100%; border-radius:18px 18px 0 0; max-height:70vh; overflow-y:auto; }
+  .auth-phint { display:none; }
+}
+</style>
 
 <style id="economy-styles">
-  .altin-badge { background: rgba(251, 191, 36, 0.15); color: #fbbf24; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(251,191,36,0.3); transition: transform 0.2s; cursor: pointer; margin-bottom: 15px;}
+  .altin-badge { background: rgba(255,215,0,0.12); color: #FFD700; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,215,0,0.25); transition: transform 0.2s; cursor: pointer; margin-bottom: 15px;}
   .altin-badge:hover { transform: scale(1.05); }
   .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; margin-top: 15px; }
-  .store-item { background: var(--surface2,#E4DDD0); border: 1px solid rgba(15,14,12,0.18); border-radius: 0; padding: 15px; text-align: center; display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s; }
-  .store-item:hover { transform: none; border-color: var(--accent,#A6361E); }
+  .store-item { background: var(--surface2,#1a1a1a); border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 15px; text-align: center; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s, transform 0.2s; }
+  .store-item:hover { transform: translateY(-2px); border-color: var(--accent,#FFD700); box-shadow: 0 0 16px rgba(255,215,0,0.1); }
   .store-ikon { font-size: 2.5rem; margin-bottom: 5px; }
-  .store-ad { font-size: 0.95rem; font-weight: 600; color: var(--text,#0F0E0C); line-height: 1.2; }
-  .store-btn { background: var(--text,#0F0E0C); color: var(--bg,#F2EDE3); border: none; padding: 8px; border-radius: 0; font-weight: bold; cursor: pointer; width: 100%; transition: opacity 0.2s; }
-  .store-btn:hover { opacity: 0.85; }
-  .store-btn:disabled { background: rgba(15,14,12,0.12); color: var(--text3,#8B8179); cursor: not-allowed; }
-  .store-btn.owned { background: var(--correct,#1E6B45); color: white; }
-  .avatar-cerceve-altin { box-shadow: 0 0 0 4px #fbbf24, 0 0 15px #fbbf24 !important; border: none !important; }
+  .store-ad { font-size: 0.95rem; font-weight: 600; color: var(--text,#FFFFFF); line-height: 1.2; }
+  .store-btn { background: var(--accent,#FFD700); color: #000; border: none; padding: 8px; border-radius: 6px; font-weight: 800; cursor: pointer; width: 100%; transition: filter 0.2s; }
+  .store-btn:hover { filter: brightness(1.1); }
+  .store-btn:disabled { background: rgba(255,255,255,0.06); color: var(--text3,#555555); cursor: not-allowed; }
+  .store-btn.owned { background: var(--correct,#00FF88); color: #000; }
+  .avatar-cerceve-altin { box-shadow: 0 0 0 4px #FFD700, 0 0 15px #FFD700 !important; border: none !important; }
   .avatar-cerceve-ates { box-shadow: 0 0 0 4px #ef4444, 0 0 20px #f97316 !important; border: none !important; animation: ates-pulse 2s infinite alternate; }
   .avatar-cerceve-elmas { box-shadow: 0 0 0 4px #06b6d4, 0 0 20px #22d3ee !important; border: none !important; }
   @keyframes ates-pulse { 0% { box-shadow: 0 0 0 4px #ef4444, 0 0 10px #f97316 !important; } 100% { box-shadow: 0 0 0 4px #f97316, 0 0 25px #ef4444 !important; } }
 
-  .quest-item { background: var(--surface2,#E4DDD0); border: 1px solid rgba(15,14,12,0.18); border-radius: 0; padding: 14px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
-  .quest-icon { font-size: 2rem; flex-shrink: 0; background: rgba(15,14,12,0.05); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 0; }
+  .quest-item { background: var(--surface2,#1a1a1a); border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 14px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .quest-icon { font-size: 2rem; flex-shrink: 0; background: rgba(255,255,255,0.05); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
   .quest-info { flex: 1; min-width: 0; }
-  .quest-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; color: var(--text,#0F0E0C); }
-  .quest-progress-bar { height: 6px; background: rgba(15,14,12,0.1); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+  .quest-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; color: var(--text,#FFFFFF); }
+  .quest-progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
   .quest-progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
   .quest-status { font-size: 0.7rem; color: var(--text3); font-weight: 600;}
-  .quest-btn { padding: 8px 16px; border-radius: 0; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; font-size: 0.8rem; }
-  .quest-btn.claim { background: var(--correct); color: #fff; box-shadow: none; animation: pulse 1.5s infinite; }
-  .quest-btn.claimed { background: rgba(15,14,12,0.08); color: var(--text3); pointer-events: none; }
+  .quest-btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; font-size: 0.8rem; }
+  .quest-btn.claim { background: var(--correct); color: #000; box-shadow: none; animation: pulse 1.5s infinite; }
+  .quest-btn.claimed { background: rgba(255,255,255,0.06); color: var(--text3); pointer-events: none; }
   .quest-btn.working { background: var(--surface); color: var(--text2); pointer-events: none; border: 1px solid var(--border); }
 
-  .media-container { width: 100%; text-align: center; margin-bottom: 16px; border-radius: 0; overflow: hidden; background: rgba(15,14,12,0.05); display: none; }
+  .media-container { width: 100%; text-align: center; margin-bottom: 16px; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.03); display: none; }
   .media-container.show { display: block; animation: fadeSlide 0.3s ease; }
   .quiz-image { max-width: 100%; max-height: 220px; object-fit: contain; display: block; margin: 0 auto; border-radius: var(--radius-sm); }
   .quiz-audio { width: 100%; height: 44px; outline: none; border-radius: var(--radius-sm); margin-top: 5px; }
@@ -123,67 +295,118 @@
   <!-- ═══════════ GİRİŞ / KAYIT ═══════════ -->
   <div class="screen" id="authScreen">
 
-    <!-- Üst bar -->
-    <div class="auth-topbar">
-      <span class="auth-tl-logo">merak<span class="ed-red">.io</span></span>
-      <button class="auth-back-lnk" onclick="misafirOyna()">GERİ DÖN</button>
-    </div>
-
-    <!-- Uçuşan harf fayansları -->
-    <div class="auth-tiles" aria-hidden="true">
-      <div class="at at-outline at-1">M</div>
-      <div class="at at-2">E</div>
-      <div class="at at-red at-3">R</div>
-      <div class="at at-outline at-4"><em>i</em></div>
-      <div class="at at-red at-5">A</div>
-      <div class="at at-red at-6">K</div>
-      <div class="at at-7">M</div>
-      <div class="at-soru at-8">?</div>
-    </div>
-
-    <!-- Editorial kart -->
-    <div class="auth-ed-card">
-      <div class="auth-ed-head">
-        <span class="auth-ed-tag">● GİRİŞ</span>
-        <span class="auth-ed-no">№ <span id="edAuthSayi">—</span> · <span id="edAuthDate">—</span></span>
+    <!-- Sol panel — spor.jpg (Giriş) -->
+    <div class="auth-p auth-p-l" id="authPL" onclick="if(typeof authMod!=='undefined'&&authMod!=='giris')authSetMod('giris')">
+      <div class="auth-pbg" style="background-image:url('images/spor.jpg')"></div>
+      <div class="auth-pgrad auth-pgrad-l"></div>
+      <div class="auth-phint">GİRİŞ YAP →</div>
+      <div class="auth-pinfo">
+        <span class="auth-ptag">● GİRİŞ YAP</span>
+        <h2 class="auth-ptitle">Hoşgeldin.<br>Tekrar<br>görüşelim.</h2>
+        <p class="auth-pstat">3.491 soru · 16 kategori</p>
       </div>
-      <div class="ed-rule-thin" style="margin:10px 0 18px"></div>
-      <h1 class="auth-ed-title">Hoşgeldin.</h1>
-      <p class="auth-ed-sub">Hesabına giriş yap ya da yeni hesap oluştur.</p>
+    </div>
 
-      <button class="auth-ed-google" id="googleBtn" onclick="googleIleGiris()">
+    <!-- Sağ panel — sanat.jpg (Kayıt) -->
+    <div class="auth-p auth-p-r" id="authPR" onclick="if(typeof authMod!=='undefined'&&authMod!=='kayit')authSetMod('kayit')">
+      <div class="auth-pbg" style="background-image:url('images/sanat.jpg')"></div>
+      <div class="auth-pgrad auth-pgrad-r"></div>
+      <div class="auth-phint">← KAYIT OL</div>
+      <div class="auth-pinfo auth-pinfo-r">
+        <span class="auth-ptag">● KAYIT OL</span>
+        <h2 class="auth-ptitle">Katıl<br>bize.</h2>
+        <p class="auth-pstat">Her gün yeni içerik</p>
+      </div>
+    </div>
+
+    <!-- Divider çizgisi + logo -->
+    <div class="auth-divline" id="authDivLine">
+      <div class="auth-divlogo">merak<span>.io</span></div>
+    </div>
+
+    <!-- Yüzen form kartı -->
+    <div class="auth-fcard" id="authFCard">
+      <span class="auth-fmod" id="authFMod">● GİRİŞ YAP</span>
+      <h1 class="auth-ftitle" id="authFTitle">Hoşgeldin.</h1>
+
+      <button class="auth-fgoogle" id="googleBtn" onclick="googleIleGiris()">
         <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
-        <span id="googleBtnText">Google ile Giriş Yap</span>
+        <span id="googleBtnText">Google ile Devam Et</span>
       </button>
 
-      <div class="auth-ed-divider"><span>veya</span></div>
+      <div class="auth-for"><span>veya</span></div>
 
-      <div class="auth-ed-tabs">
-        <button class="auth-tab active" onclick="authTabSec('giris', this)">Giriş Yap</button>
-        <button class="auth-tab" onclick="authTabSec('kayit', this)">Kayıt Ol</button>
-      </div>
-
-      <input type="text" id="authIsim" class="auth-ed-input" placeholder="Adın" maxlength="20" style="display:none;" autocomplete="name">
-      <input type="email" id="authEmail" class="auth-ed-input" placeholder="E-posta adresi" autocomplete="email">
-      <input type="password" id="authSifre" class="auth-ed-input" placeholder="Şifre (en az 6 karakter)" autocomplete="current-password">
+      <input type="text" id="authIsim" class="auth-finput" placeholder="Adın" maxlength="20" style="display:none" autocomplete="name">
+      <input type="email" id="authEmail" class="auth-finput" placeholder="E-posta adresi" autocomplete="email">
+      <input type="password" id="authSifre" class="auth-finput" placeholder="Şifre (en az 6 karakter)" autocomplete="current-password">
 
       <div class="auth-error" id="authError"></div>
 
-      <button class="auth-ed-btn" id="authBtn" onclick="emailIslem()">GİRİŞ YAP →</button>
-
-      <button class="auth-ed-misafir" onclick="misafirOyna()">Misafir olarak devam et →</button>
+      <button class="auth-fsubmit" id="authBtn" onclick="emailIslem()">GİRİŞ YAP →</button>
+      <button class="auth-fmisafir" onclick="misafirOyna()">Misafir olarak devam et →</button>
     </div>
 
-    <!-- Alt bar -->
-    <div class="auth-botbar">
-      <span>CİLT 01 · GİRİŞ EKRANI</span>
-      <span>HARFLER UÇUŞTURULMUŞ · MELİME SAKLI</span>
-    </div>
+    <script>
+    (function() {
+      var scrEl  = document.getElementById('authScreen');
+      var PL     = document.getElementById('authPL');
+      var PR     = document.getElementById('authPR');
+      var divEl  = document.getElementById('authDivLine');
+      var card   = document.getElementById('authFCard');
+      var ticking = false;
+
+      function getMod() { return (typeof authMod !== 'undefined') ? authMod : 'giris'; }
+
+      function setSplit(r) {
+        var m = getMod();
+        PL.style.flex = r + ' 0 0';
+        PR.style.flex = (1 - r) + ' 0 0';
+        divEl.style.left = (r * 100) + '%';
+        var cardPct = (m === 'giris') ? (r / 2 * 100) : ((r + (1 - r) / 2) * 100);
+        card.style.left = cardPct + '%';
+      }
+
+      window.authSetMod = function(mod) {
+        try { authMod = mod; } catch(e) {}
+        var isK = mod === 'kayit';
+        document.getElementById('authFMod').textContent      = isK ? '● KAYIT OL' : '● GİRİŞ YAP';
+        document.getElementById('authFTitle').textContent    = isK ? 'Katıl bize.' : 'Hoşgeldin.';
+        document.getElementById('authBtn').textContent       = isK ? 'HESAP OLUŞTUR →' : 'GİRİŞ YAP →';
+        document.getElementById('googleBtnText').textContent = isK ? 'Google ile Kayıt Ol' : 'Google ile Devam Et';
+        document.getElementById('authIsim').style.display    = isK ? 'block' : 'none';
+        document.getElementById('authSifre').autocomplete    = isK ? 'new-password' : 'current-password';
+        scrEl.classList.toggle('auth-mod-kayit', isK);
+        setSplit(isK ? 0.38 : 0.62);
+      };
+
+      window.authSplitMod = window.authSetMod;
+      window.authTabSec = function(mod) { window.authSetMod(mod); };
+
+      scrEl.addEventListener('mousemove', function(e) {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function() {
+          var base  = (getMod() === 'kayit') ? 0.38 : 0.62;
+          var delta = (e.clientX / window.innerWidth - 0.5) * 0.28;
+          setSplit(Math.max(0.26, Math.min(0.74, base + delta)));
+          ticking = false;
+        });
+      });
+      scrEl.addEventListener('mouseleave', function() {
+        setSplit((getMod() === 'kayit') ? 0.38 : 0.62);
+      });
+
+      // İlk render (defer öncesi)
+      setSplit(0.62);
+      // defer tamamlandıktan sonra doğru authMod ile tekrar çalıştır
+      document.addEventListener('DOMContentLoaded', function() { setSplit((getMod() === 'kayit') ? 0.38 : 0.62); });
+    })();
+    </script>
 
   </div>
 
@@ -227,260 +450,727 @@
   <!-- ═══════════ ANA SAYFA — EDİTÖRYEL ═══════════ -->
   <div class="screen" id="homeScreen">
 
-    <!-- ── MASTHEAD ── -->
-    <div class="ed-masthead">
-      <div class="ed-issue">CİLT 01 · SAYI <span id="edSayi">1</span></div>
-      <div class="ed-date" id="edDate"></div>
-    </div>
-    <div class="ed-rule-bold"></div>
-
-    <!-- ── NAV ── -->
-    <nav class="ed-nav">
-      <div class="ed-nav-left">
-        <button class="ed-tab-btn active" onclick="edTabSec('bugun', this)">BUGÜN</button>
-        <button class="ed-tab-btn" onclick="edTabSec('bolumler', this)">BÖLÜMLER</button>
-        <button class="ed-tab-btn" onclick="edTabSec('arsiv', this)">ARŞİV</button>
+    <!-- ── ApeChain Sticky Nav ── -->
+    <nav class="ape-nav" id="apeNav">
+      <div class="ape-nav-logo" onclick="edTabSec('bugun', document.querySelector('.ape-tab')); window.scrollTo({top:0,behavior:'smooth'})">merak<span>.io</span></div>
+      <div class="ape-nav-tabs">
+        <button class="ape-tab ed-tab-btn active" onclick="edTabSec('bugun', this)">BUGÜN</button>
+        <button class="ape-tab ed-tab-btn" onclick="edTabSec('bolumler', this)">KEŞFET</button>
+        <button class="ape-tab ed-tab-btn" onclick="edTabSec('kartlar', this)">KARTLAR</button>
+        <button class="ape-tab ed-tab-btn" onclick="edTabSec('arsiv', this)">ATÖLYE</button>
       </div>
-      <div class="ed-nav-logo">merak<span class="ed-red">.io</span></div>
-      <div class="ed-nav-right">
+      <div class="ape-nav-right">
         <span class="ed-streak-tag" id="edStreakTag" style="display:none"></span>
-        <button class="ed-nav-user" id="edNavUser" onclick="miniProfilTikla()">Giriş Yap →</button>
+        <button id="portalGeriBtn" style="display:none;background:none;border:1px solid rgba(255,255,255,0.15);color:var(--text2);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer;" title="Portala Dön">← Portal</button>
+        <button class="ape-login-btn" id="edNavUser" onclick="miniProfilTikla()">GİRİŞ YAP →</button>
       </div>
     </nav>
-    <div class="ed-rule-thin"></div>
+    <script>
+      (function() {
+        const _sa = new URLSearchParams(window.location.search).get('standalone');
+        if (window.innerWidth <= 640 && (_sa || sessionStorage.getItem('merakPortal'))) {
+          const pgb = document.getElementById('portalGeriBtn');
+          pgb.style.display = 'inline-block';
+          if (_sa) {
+            pgb.onclick = function() { window.parent.postMessage('oyunKapat', '*'); };
+            pgb.title = 'Kapat';
+            pgb.textContent = '← Geri';
+          }
+        }
+      })();
+    </script>
+    <!-- Legacy hidden elements (JS compatibility) -->
+    <div style="display:none" aria-hidden="true">
+      <div id="edSayi">1</div><div id="edDate"></div>
+    </div>
 
     <!-- ══════ TAB: BUGÜN ══════ -->
     <div class="ed-content" id="edTabBugun">
 
-      <!-- ── İnline Wordle Paneli (hero'nun yerini alır) ── -->
+      <!-- ── İnline Wordle Paneli (JS compatibility — hidden until played) ── -->
       <div id="edWordlePanel" style="display:none">
-        <div class="ed-wl-header">
-          <button class="ed-wl-back" onclick="edWordleKapat()">← Geri</button>
-          <div class="ed-wl-baslik">TAHMİNLE <span class="ed-wl-no">№ <span id="wordleGunNo"></span></span></div>
-          <button class="ed-wl-paylas" id="wordlePaylas" onclick="wordlePaylas()" style="display:none">📤 Paylaş</button>
-        </div>
-        <div class="ed-rule-thin"></div>
-        <div class="ed-wl-durum" id="wordleDurum">5 harfli kelimeyi 6 denemede bul!</div>
-        <input id="wordleGizliInput" type="text"
-          autocomplete="off" autocorrect="off" autocapitalize="characters"
-          spellcheck="false" inputmode="text"
+        <input id="wordleGizliInput" type="text" autocomplete="off" autocorrect="off"
+          autocapitalize="characters" spellcheck="false" inputmode="text"
           style="position:fixed;top:-100px;left:0;width:1px;height:1px;opacity:0;border:none;padding:0;font-size:16px;">
-        <div class="ed-wl-body">
-          <div class="wordle-grid" id="wordleGrid"></div>
-          <div class="wordle-tap-hint" id="wordleTapHint" style="display:none"
-            onclick="document.getElementById('wordleGizliInput').focus()">
-            👆 Yazmak için buraya dokun
+        <div class="wl3-topbar">
+          <div class="wl3-topbar-sol">
+            <button class="ed-wl-back" onclick="edWordleKapat()">← Geri</button>
           </div>
-          <div class="wordle-klavye" id="wordleKlavye"></div>
+          <a class="wl3-logo" href="/">merak<span>.io</span></a>
+          <span class="wl3-no">№ <span id="wordleGunNo"></span></span>
+        </div>
+        <div class="wl3-wrap">
+          <div class="wl3-klavye-col">
+            <p class="wl3-lbl">KLAVYE</p>
+            <div class="wordle-klavye" id="wordleKlavye"></div>
+          </div>
+          <div class="wl3-orta">
+            <div class="wordle-grid" id="wordleGrid"></div>
+          </div>
+          <div class="wl3-info-col">
+            <div class="wl3-lejant">
+              <div class="wl3-lejant-row"><span class="wl3-kare" style="background:#538d4e"></span>Doğru harf, doğru yer</div>
+              <div class="wl3-lejant-row"><span class="wl3-kare" style="background:#b59f3b"></span>Doğru harf, yanlış yer</div>
+              <div class="wl3-lejant-row"><span class="wl3-kare"></span>Kelimede yok</div>
+            </div>
+            <div class="wl3-line"></div>
+            <p class="wl3-lbl">KALAN DENEME</p>
+            <div class="wl3-kalan-sayi" id="wlKalanEl">06<span>/06</span></div>
+            <div class="wl3-durum" id="wordleDurum"></div>
+            <button class="wl3-paylas-btn" id="wordlePaylas" onclick="wordlePaylas()" style="display:none">📤 Paylaş</button>
+            <div class="wl3-line"></div>
+            <p class="wl3-lbl">BUGÜN</p>
+            <div class="wl3-stats">
+              <div class="wl3-stat"><span>SERİN</span><span id="edAuthSayi" style="color:var(--accent);font-weight:700"></span></div>
+              <div class="wl3-stat"><span>ÇÖZEN</span><span>3,184</span></div>
+              <div class="wl3-stat"><span>ORT. TAHMİN</span><span>4.2</span></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ── Ana Sayfa İçeriği ── -->
+      <!-- ── Cinematic Carousel (Ana Sayfa İçeriği) ── -->
       <div id="edHomeContent">
 
-      <!-- ════ MASAÜSTÜ (>640px) ════ -->
-      <div class="ed-dsk">
-
-      <!-- Hero: Tahminle -->
-      <div class="ed-hero">
-        <!-- Sol: başlık + CTA -->
-        <div class="ed-hero-left">
-          <div class="ed-hero-meta">№ <span id="edHeroNo">1</span> · BUGÜNÜN BULMACASI</div>
-          <h1 class="ed-h1">Tahmin et,<br><em>5 harfte</em><br>kazan.</h1>
-          <p class="ed-hero-desc">Her gün yeni bir Türkçe kelime. Altı denemen, bir akşam üstü ritüelin.</p>
-          <button class="btn btn-primary btn-shine" onclick="wordleBaslat()">OYNAMAYA BAŞLA →</button>
-        </div>
-        <!-- Orta: Wordle önizleme -->
-        <div class="ed-hero-mid">
-          <div class="ed-wg-head">
-            <span class="ed-wg-lbl">ÖNİZLEME</span>
-            <span class="ed-wg-deneme" id="edWgDeneme"></span>
-          </div>
-          <div class="ed-wg" id="edHeroGrid"></div>
-        </div>
-        <!-- Sağ: istatistikler -->
-        <div class="ed-hero-right">
-          <div class="ed-rstat-sec">BUGÜN</div>
-          <div class="ed-rstat">
-            <div class="ed-rstat-lbl">SENİN SERİN</div>
-            <div class="ed-rstat-val accent" id="edStatStreak">—</div>
-          </div>
-          <div class="ed-rstat-div"></div>
-          <div class="ed-rstat">
-            <div class="ed-rstat-lbl">YARIN İÇİN</div>
-            <div class="ed-rstat-val" id="edStatSure">—</div>
-          </div>
-          <div class="ed-rstat-div"></div>
-          <div class="ed-rstat">
-            <div class="ed-rstat-lbl">TOPLAM SORU</div>
-            <div class="ed-rstat-val" id="edStatToplam">—</div>
-          </div>
-        </div>
-      </div>
-      <div class="ed-rule-thin"></div>
-
-      <!-- Mod seçimi -->
-      <div class="ed-modes" id="edModGrid">
-        <div class="ed-mode selected" data-mod="klasik" onclick="edModSec('klasik', this)">
-          <div class="ed-mode-name">Klasik</div>
-          <div class="ed-mode-info">10 soru · 3 can</div>
-          <div class="ed-mode-tag">Standart yarışma</div>
-        </div>
-        <div class="ed-mode" data-mod="hiz" onclick="edModSec('hiz', this)">
-          <div class="ed-mode-name">Hız</div>
-          <div class="ed-mode-info">60 saniye · sınırsız</div>
-          <div class="ed-mode-tag">En çok doğru</div>
-        </div>
-        <div class="ed-mode" data-mod="sonsuz" onclick="edModSec('sonsuz', this)">
-          <div class="ed-mode-name">Sonsuz</div>
-          <div class="ed-mode-info">Yanılana kadar</div>
-          <div class="ed-mode-tag">Kişisel rekor avı</div>
-        </div>
-        <div class="ed-mode" data-mod="sinav" onclick="edModSec('sinav', this)">
-          <div class="ed-mode-name">Sınav</div>
-          <div class="ed-mode-info">50 soru · zamanlı</div>
-          <div class="ed-mode-tag">Lig için ısınma</div>
-        </div>
-      </div>
-      <div class="ed-rule-thin"></div>
-
-      <!-- Zorluk + tema + başla -->
-      <div class="ed-opts-bar">
-        <div class="ed-diff-row">
-          <button class="ed-diff-btn" data-diff="kolay" onclick="edDiffSec('kolay', this)">🌱 Kolay</button>
-          <button class="ed-diff-btn selected" data-diff="orta" onclick="edDiffSec('orta', this)">⚡ Orta</button>
-          <button class="ed-diff-btn" data-diff="zor" onclick="edDiffSec('zor', this)">🔥 Zor</button>
-        </div>
-        <div class="ed-icon-row">
-          <button class="ed-icon-btn" id="temaMod" onclick="temaDegistir()" title="Tema">🌙</button>
-          <button class="ed-icon-btn" id="sesBtn" onclick="sesDegistir()" title="Ses">🔊</button>
-          <button class="ed-icon-btn tema-renk mavi selected" onclick="aksanDegistir('mavi', this)" title="Mavi"></button>
-          <button class="ed-icon-btn tema-renk mor" onclick="aksanDegistir('mor', this)" title="Mor"></button>
-          <button class="ed-icon-btn tema-renk yesil" onclick="aksanDegistir('yesil', this)" title="Yeşil"></button>
-        </div>
-        <button class="btn btn-primary btn-shine" onclick="baslat()">🚀 QUIZ'E BAŞLA</button>
-      </div>
-      <div class="ed-rule-thin"></div>
-
-      <!-- Kategori tablosu -->
-      <div class="ed-cat-head">
-        <span class="ed-cat-lbl">BÖLÜMLER</span>
-        <button class="ed-cat-all" onclick="edKategoriSec('all')">TÜMÜ →</button>
-      </div>
-      <div class="ed-cat-tbl" id="edCatTbl"></div>
-      <div class="ed-rule-thin"></div>
-
-      <!-- rozetVitrin gizli — güncelleme için ID gerekli -->
-      <div id="rozetVitrin" style="display:none"></div>
-
-      <!-- Meydan okuma (görünürse) -->
-      <div class="challenge-banner" id="challengeBanner" style="display:none;">
-        <div class="challenge-icon">🤺</div>
-        <div class="challenge-info">
-          <div class="challenge-title">Meydan Okuma!</div>
-          <div class="challenge-sub" id="challengeSub">Rakibinin skoru bekleniyor</div>
-        </div>
-        <button class="challenge-accept" onclick="challengeBaslat()">KABUL ET →</button>
-      </div>
-
-      </div><!-- /ed-dsk -->
-
-      <!-- ════ MOBİL (≤640px) ════ -->
-      <div class="ed-mob">
-
-        <!-- Wordle CTA -->
-        <div class="m-block">
-          <div class="m-meta">№ <span id="mEdHeroNo">—</span> · BUGÜNÜN BULMACASI</div>
-          <div class="m-title">Tahmin et, <em>5 harfte</em> kazan.</div>
-          <button class="btn btn-primary m-full-btn" onclick="wordleBaslat()">OYNAMAYA BAŞLA →</button>
+        <!-- JS compatibility hidden elements -->
+        <div style="display:none" aria-hidden="true">
+          <span id="edHeroNo"></span><span id="mHeroNo"></span>
+          <span id="edWgDeneme"></span><div id="edHeroGrid"></div>
+          <span id="edStatStreak"></span><span id="edStatSure"></span><span id="edStatToplam"></span>
+          <div id="edCatTbl"></div><div id="rozetVitrin"></div>
+          <div id="challengeBanner"><div id="challengeSub"></div><button onclick="challengeBaslat()"></button></div>
+          <div id="mHarfOn"></div>
         </div>
 
-        <div class="m-div"></div>
+        <!-- ── Hero Carousel ── -->
+        <div class="ape-hero" id="apeHero">
+          <div class="ape-carousel-track" id="apeCarouselTrack">
 
-        <!-- Quiz: mod + zorluk -->
-        <div class="m-block">
-          <div class="m-lbl">QUIZ MODU</div>
-          <div class="m-mode-grid">
-            <div class="m-mode selected" data-mod="klasik" onclick="edModSec('klasik',this)">
-              <div class="m-mode-name">Klasik</div>
-              <div class="m-mode-sub">10 soru · 3 can</div>
+            <!-- 0: Tahminle (Wordle) -->
+            <div class="ape-slide" data-idx="0">
+              <div class="ape-slide-bg" style="background:linear-gradient(140deg,#2d1400 0%,#1a0a00 50%,#0d0505 100%)">
+                <div class="ape-slide-glow" style="background:radial-gradient(ellipse at 25% 65%,rgba(255,140,0,0.3) 0%,transparent 55%)"></div>
+              </div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge hot">HOT</span><span class="ape-badge daily">GÜNLÜK</span></div>
+                <div class="ape-slide-cat">GÜNLÜK WORDLE</div>
+                <h2 class="ape-slide-title">TAHMİNLE</h2>
+                <p class="ape-slide-desc">5 harfli Türkçe kelimeyi 6 tahminde bul. Her gün yeni bir kelime.</p>
+                <button class="ape-launch-btn" onclick="wordleBaslat();event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
             </div>
-            <div class="m-mode" data-mod="hiz" onclick="edModSec('hiz',this)">
-              <div class="m-mode-name">Hız</div>
-              <div class="m-mode-sub">60 sn · sınırsız</div>
+
+            <!-- 1: Kestir -->
+            <div class="ape-slide" data-idx="1">
+              <div class="ape-slide-bg" style="background:linear-gradient(140deg,#001a10 0%,#000f08 50%,#0a0a0a 100%)">
+                <div class="ape-slide-glow" style="background:radial-gradient(ellipse at 75% 40%,rgba(0,255,120,0.2) 0%,transparent 55%)"></div>
+              </div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge new">YENİ</span></div>
+                <div class="ape-slide-cat">TAHMİN OYUNU</div>
+                <h2 class="ape-slide-title">KESTİR</h2>
+                <p class="ape-slide-desc">Sayıyı tahmin et — yıl, mesafe, nüfus, yükseklik. Ne kadar yakın gelebilirsin?</p>
+                <button class="ape-launch-btn" onclick="tahminBaslat();event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
             </div>
-            <div class="m-mode" data-mod="sonsuz" onclick="edModSec('sonsuz',this)">
-              <div class="m-mode-name">Sonsuz</div>
-              <div class="m-mode-sub">Yanılana kadar</div>
+
+            <!-- 2: Tarih -->
+            <div class="ape-slide" data-idx="2">
+              <div class="ape-slide-bg" style="background-image:url('images/tarih.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge hot">HOT</span></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 373 SORU</div>
+                <h2 class="ape-slide-title">TARİH</h2>
+                <p class="ape-slide-desc">Tarihin büyük olaylarını, medeniyetleri ve dönüm noktalarını keşfet.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('tarih','Tarih');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
             </div>
-            <div class="m-mode" data-mod="sinav" onclick="edModSec('sinav',this)">
-              <div class="m-mode-name">Sınav</div>
-              <div class="m-mode-sub">50 soru · zamanlı</div>
+
+            <!-- 3: Spor -->
+            <div class="ape-slide" data-idx="3">
+              <div class="ape-slide-bg" style="background-image:url('images/spor.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge hot">HOT</span></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 385 SORU</div>
+                <h2 class="ape-slide-title">SPOR</h2>
+                <p class="ape-slide-desc">Dünya sporlarından efsane anlar, şampiyonlar ve rekorlar.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('spor','Spor');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
             </div>
+
+            <!-- 4: Coğrafya -->
+            <div class="ape-slide" data-idx="4">
+              <div class="ape-slide-bg" style="background-image:url('images/cografya.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 377 SORU</div>
+                <h2 class="ape-slide-title">COĞRAFYA</h2>
+                <p class="ape-slide-desc">Dünyanın dört bir yanından şehirler, ülkeler ve doğal yapılar.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('cografya','Coğrafya');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 5: Bilim -->
+            <div class="ape-slide" data-idx="5">
+              <div class="ape-slide-bg" style="background-image:url('images/bilim.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 225 SORU</div>
+                <h2 class="ape-slide-title">BİLİM</h2>
+                <p class="ape-slide-desc">Fizik, kimya, biyoloji ve daha fazlası. Bilimsel zihnini test et.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('bilim','Bilim');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 6: Sanat -->
+            <div class="ape-slide" data-idx="6">
+              <div class="ape-slide-bg" style="background-image:url('images/sanat.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 256 SORU</div>
+                <h2 class="ape-slide-title">SANAT</h2>
+                <p class="ape-slide-desc">Resim, heykel, mimari. Sanatın evrimini kaç adımda keşfedersin?</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('sanat','Sanat');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 7: Sinema -->
+            <div class="ape-slide" data-idx="7">
+              <div class="ape-slide-bg" style="background-image:url('images/sinema.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 225 SORU</div>
+                <h2 class="ape-slide-title">SİNEMA</h2>
+                <p class="ape-slide-desc">Klasik filmler, yönetmenler ve unutulmaz sahneler. Sinefil misin?</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('sinema','Sinema');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 8: Müzik -->
+            <div class="ape-slide" data-idx="8">
+              <div class="ape-slide-bg" style="background-image:url('images/muzik.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 222 SORU</div>
+                <h2 class="ape-slide-title">MÜZİK</h2>
+                <p class="ape-slide-desc">Klasikten rock'a, cazdan elektronik müziğe. Notaları okuyabilir misin?</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('muzik','Müzik');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 9: Teknoloji -->
+            <div class="ape-slide" data-idx="9">
+              <div class="ape-slide-bg" style="background-image:url('images/teknoloji.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge new">TREND</span></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 226 SORU</div>
+                <h2 class="ape-slide-title">TEKNOLOJİ</h2>
+                <p class="ape-slide-desc">Yazılımdan donanıma, internetin tarihinden bugüne. Tech doktoru musun?</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('teknoloji','Teknoloji');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 10: Yemek -->
+            <div class="ape-slide" data-idx="10">
+              <div class="ape-slide-bg" style="background-image:url('images/yemek.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 232 SORU</div>
+                <h2 class="ape-slide-title">YEMEK</h2>
+                <p class="ape-slide-desc">Dünya mutfaklarından lezzetler, tarifler ve gıda tarihi. Afiyet olsun!</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('yemek','Yemek');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 11: Edebiyat -->
+            <div class="ape-slide" data-idx="11">
+              <div class="ape-slide-bg" style="background-image:url('images/edebiyat.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 221 SORU</div>
+                <h2 class="ape-slide-title">EDEBİYAT</h2>
+                <p class="ape-slide-desc">Dünya klasiklerinden yerli edebiyata. Okudukların seni ele verir.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('edebiyat','Edebiyat');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 12: Mitoloji -->
+            <div class="ape-slide" data-idx="12">
+              <div class="ape-slide-bg" style="background-image:url('images/mitoloji.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 216 SORU</div>
+                <h2 class="ape-slide-title">MİTOLOJİ</h2>
+                <p class="ape-slide-desc">Yunan, Roma ve Türk mitolojisinden tanrılar, kahramanlar ve efsaneler.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('mitoloji','Mitoloji');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 13: Astronomi -->
+            <div class="ape-slide" data-idx="13">
+              <div class="ape-slide-bg" style="background-image:url('images/astronomi.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge new">YENİ</span></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 65 SORU</div>
+                <h2 class="ape-slide-title">ASTRONOMİ</h2>
+                <p class="ape-slide-desc">Gezegenler, yıldızlar, galaksiler ve evrenin sırları. Uzaya aç mısın?</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('astronomi','Astronomi');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 14: Ekonomi -->
+            <div class="ape-slide" data-idx="14">
+              <div class="ape-slide-bg" style="background:linear-gradient(140deg,#0d1a00 0%,#1a2800 50%,#0a0a0a 100%)">
+                <div class="ape-slide-glow" style="background:radial-gradient(ellipse at 65% 35%,rgba(160,255,50,0.15) 0%,transparent 55%)"></div>
+              </div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 102 SORU</div>
+                <h2 class="ape-slide-title">EKONOMİ</h2>
+                <p class="ape-slide-desc">Piyasalar, merkez bankaları, enflasyon ve küresel ekonominin dinamikleri.</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('ekonomi','Ekonomi');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+            <!-- 15: Hayvanlar -->
+            <div class="ape-slide" data-idx="15">
+              <div class="ape-slide-bg" style="background-image:url('images/hayvanlar.jpg')"></div>
+              <div class="ape-slide-overlay"></div>
+              <div class="ape-slide-content">
+                <div class="ape-slide-badges"><span class="ape-badge new">YENİ</span></div>
+                <div class="ape-slide-cat">SORU KATEGORİSİ · 97 SORU</div>
+                <h2 class="ape-slide-title">HAYVANLAR</h2>
+                <p class="ape-slide-desc">Doğanın harikalarından egzotik türlere. Hayvan bilgin ne kadar güçlü?</p>
+                <button class="ape-launch-btn" onclick="apeKatOyna('hayvanlar','Hayvanlar');event.stopPropagation()">OYNAMAYA BAŞLA →</button>
+              </div>
+            </div>
+
+          </div><!-- /apeCarouselTrack -->
+
+          <div class="ape-counter"><span id="apeIdx">01</span><span class="ape-counter-sep">/</span><span>16</span></div>
+          <div class="ape-thumbs" id="apeThumbs"></div>
+        </div><!-- /apeHero -->
+
+        <!-- Quick category links -->
+        <div class="ape-quick-cats">
+          <div class="ape-quick-label">TÜM KATEGORİLER</div>
+          <div class="ape-quick-grid" id="apeQuickGrid">
+            <button class="ape-quick-chip" onclick="apeKatOyna('tarih','Tarih')"><span class="ape-quick-chip-icon">🏛</span>Tarih</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('spor','Spor')"><span class="ape-quick-chip-icon">⚽</span>Spor</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('cografya','Coğrafya')"><span class="ape-quick-chip-icon">🌍</span>Coğrafya</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('bilim','Bilim')"><span class="ape-quick-chip-icon">🔬</span>Bilim</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('sanat','Sanat')"><span class="ape-quick-chip-icon">🎨</span>Sanat</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('sinema','Sinema')"><span class="ape-quick-chip-icon">🎬</span>Sinema</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('muzik','Müzik')"><span class="ape-quick-chip-icon">🎵</span>Müzik</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('teknoloji','Teknoloji')"><span class="ape-quick-chip-icon">💻</span>Teknoloji</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('yemek','Yemek')"><span class="ape-quick-chip-icon">🍳</span>Yemek</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('edebiyat','Edebiyat')"><span class="ape-quick-chip-icon">📚</span>Edebiyat</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('mitoloji','Mitoloji')"><span class="ape-quick-chip-icon">⚡</span>Mitoloji</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('astronomi','Astronomi')"><span class="ape-quick-chip-icon">🔭</span>Astronomi</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('ekonomi','Ekonomi')"><span class="ape-quick-chip-icon">📈</span>Ekonomi</button>
+            <button class="ape-quick-chip" onclick="apeKatOyna('hayvanlar','Hayvanlar')"><span class="ape-quick-chip-icon">🦁</span>Hayvanlar</button>
+            <button class="ape-quick-chip" onclick="wordleBaslat()"><span class="ape-quick-chip-icon">🔤</span>Tahminle</button>
+            <button class="ape-quick-chip" onclick="tahminBaslat()"><span class="ape-quick-chip-icon">🎯</span>Kestir</button>
           </div>
-          <div class="m-diff-row">
-            <button class="m-diff-btn" data-diff="kolay" onclick="edDiffSec('kolay',this)">🌱 Kolay</button>
-            <button class="m-diff-btn selected" data-diff="orta" onclick="edDiffSec('orta',this)">⚡ Orta</button>
-            <button class="m-diff-btn" data-diff="zor" onclick="edDiffSec('zor',this)">🔥 Zor</button>
-          </div>
-          <button class="btn btn-primary m-full-btn" onclick="baslat()">🚀 QUIZ'E BAŞLA</button>
+          <button class="ape-all-btn" onclick="edTabSec('bolumler', document.querySelectorAll('.ape-tab')[1])">TÜM OYUNLAR &nbsp;›</button>
         </div>
-
-        <div class="m-div"></div>
-
-        <!-- Kategori -->
-        <div class="m-block">
-          <div class="m-lbl">KATEGORİ</div>
-          <div id="mCatList"></div>
-        </div>
-
-        <div class="m-div"></div>
-
-        <!-- Profil + ayarlar -->
-        <div class="m-block m-bottom">
-          <div class="mini-profil-kart" id="miniProfilKart" onclick="miniProfilTikla()">
-            <div class="mini-profil-av" id="miniProfilAv">?</div>
-            <div class="mini-profil-detay">
-              <div class="mini-profil-isim" id="miniProfilIsim">Giriş Yap</div>
-              <div class="mini-profil-alt" id="miniProfilAlt">Kayıt ol, ilerlemeni takip et</div>
-            </div>
-            <span class="mini-profil-ok">→</span>
-          </div>
-          <div class="m-settings">
-            <button class="ed-icon-btn" id="temaMod" onclick="temaDegistir()" title="Tema">🌙</button>
-            <button class="ed-icon-btn" id="sesBtn" onclick="sesDegistir()" title="Ses">🔊</button>
-            <button class="ed-icon-btn tema-renk mavi selected" onclick="aksanDegistir('mavi',this)"></button>
-            <button class="ed-icon-btn tema-renk mor" onclick="aksanDegistir('mor',this)"></button>
-            <button class="ed-icon-btn tema-renk yesil" onclick="aksanDegistir('yesil',this)"></button>
-            <div class="altin-badge" onclick="fabGit('magaza')">🪙 <span class="altin-miktar">0</span></div>
-          </div>
-          <button id="installBtn" class="install-btn m-full-btn" onclick="uygulamaKur()" style="display:none">📲 Ana Ekrana Ekle</button>
-          <button id="bildirimBtn" class="install-btn m-full-btn" onclick="bildirimIzniIste()" style="display:none">🔔 Günlük Hatırlatıcı</button>
-        </div>
-
-      </div><!-- /ed-mob -->
 
       </div><!-- /edHomeContent -->
     </div><!-- /edTabBugun -->
 
+    <script>
+    /* ── ApeChain Carousel ── */
+    (function() {
+      var APE_TOTAL = 16;
+      var apeIdx = 0;
+      var _timer = null;
+
+      function render() {
+        var slides = document.querySelectorAll('#apeCarouselTrack .ape-slide');
+        var thumbs = document.querySelectorAll('#apeThumbs .ape-thumb');
+        var idxEl  = document.getElementById('apeIdx');
+        slides.forEach(function(s, i) {
+          s.classList.remove('is-active', 'is-prev', 'is-next');
+          var fwd = (i - apeIdx + APE_TOTAL) % APE_TOTAL;
+          var bwd = (apeIdx - i + APE_TOTAL) % APE_TOTAL;
+          if (fwd === 0)            s.classList.add('is-active');
+          else if (fwd === 1)       s.classList.add('is-next');
+          else if (bwd === 1)       s.classList.add('is-prev');
+        });
+        thumbs.forEach(function(t, i) { t.classList.toggle('is-active', i === apeIdx); });
+        if (idxEl) idxEl.textContent = (apeIdx + 1 < 10 ? '0' : '') + (apeIdx + 1);
+      }
+
+      function resetTimer() {
+        if (_timer) clearInterval(_timer);
+        _timer = setInterval(function() { window.apeNext(); }, 6000);
+      }
+
+      window.apeNext = function() { apeIdx = (apeIdx + 1) % APE_TOTAL; render(); resetTimer(); };
+      window.apePrev = function() { apeIdx = (apeIdx - 1 + APE_TOTAL) % APE_TOTAL; render(); resetTimer(); };
+
+      window.apeKatOyna = function(kat, katIsmi) {
+        if (typeof seciliKategori !== 'undefined') seciliKategori = kat;
+        if (typeof edModSeciliKat !== 'undefined') edModSeciliKat = kat;
+        var katEl = document.getElementById('edModKatAdi');
+        if (katEl) katEl.textContent = katIsmi;
+        var ov = document.getElementById('edModPanel');
+        if (ov) { ov.style.display = ''; ov.classList.add('show'); }
+      };
+
+      /* Init thumbs + first render */
+      function init() {
+        var thumbsEl = document.getElementById('apeThumbs');
+        if (!thumbsEl) return;
+        for (var i = 0; i < APE_TOTAL; i++) {
+          (function(idx) {
+            var btn = document.createElement('button');
+            btn.className = 'ape-thumb';
+            btn.onclick = function() { apeIdx = idx; render(); resetTimer(); };
+            thumbsEl.appendChild(btn);
+          })(i);
+        }
+        render();
+        resetTimer();
+      }
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+
+      /* Touch + mouse drag swipe */
+      var _tx = 0, _mx = 0, _dragging = false;
+
+      document.addEventListener('touchstart', function(e) { _tx = e.touches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', function(e) {
+        var dx = e.changedTouches[0].clientX - _tx;
+        if (Math.abs(dx) > 50 && document.getElementById('apeHero')) {
+          if (dx < 0) window.apeNext(); else window.apePrev();
+        }
+      }, { passive: true });
+
+      var _hero = null;
+      function getHero() { return _hero || (_hero = document.getElementById('apeHero')); }
+
+      document.addEventListener('mousedown', function(e) {
+        if (!getHero() || !getHero().contains(e.target)) return;
+        _mx = e.clientX;
+        _dragging = true;
+        getHero().style.cursor = 'grabbing';
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', function(e) {
+        if (_dragging) e.preventDefault();
+      });
+      document.addEventListener('mouseup', function(e) {
+        if (!_dragging) return;
+        _dragging = false;
+        getHero().style.cursor = '';
+        var dx = e.clientX - _mx;
+        if (Math.abs(dx) > 50) {
+          if (dx < 0) window.apeNext(); else window.apePrev();
+        }
+      });
+
+      /* Keyboard arrows */
+      document.addEventListener('keydown', function(e) {
+        if (!document.getElementById('apeHero')) return;
+        if (e.key === 'ArrowRight') window.apeNext();
+        else if (e.key === 'ArrowLeft') window.apePrev();
+      });
+    })();
+    </script>
+
     <!-- ══════ TAB: BÖLÜMLER ══════ -->
     <div class="ed-content" id="edTabBolumler" style="display:none">
-      <div class="ed-pg-hero">
-        <div class="ed-pg-meta" id="edBolumMeta">12 BÖLÜM</div>
-        <h1 class="ed-pg-title">Bütün <em>bölümler.</em></h1>
+      <div class="ed-bolum-hero">
+        <h1 class="ed-pg-title"><em>Keşfet.</em></h1>
       </div>
       <div class="ed-rule-bold"></div>
-      <div id="edBolumList"></div>
+      <div id="edBolumList" class="ed-bolum-grid"></div>
     </div>
 
-    <!-- ══════ TAB: ARŞİV ══════ -->
-    <div class="ed-content" id="edTabArsiv" style="display:none">
-      <div class="ed-pg-hero">
-        <div class="ed-pg-meta" id="edArsivMeta">ARŞİV</div>
-        <h1 class="ed-pg-title">Geçen <em>her gün.</em></h1>
+    <!-- ══════ TAB: KARTLAR ══════ -->
+    <div class="ed-content" id="edTabKartlar" style="display:none">
+      <div class="kt-hero">
+        <h1 class="ed-pg-title">Günlük <em>kartlar.</em></h1>
+        <p class="kt-aciklama">Her gün 10 rastgele kart. Çevir, öğren, takip et.</p>
       </div>
       <div class="ed-rule-bold"></div>
-      <div id="edArsivList"></div>
+
+      <div class="kt-istatistik">
+        <div class="kt-stat">
+          <div class="kt-stat-deger" id="ktSeriEl">—</div>
+          <div class="kt-stat-lbl">Günlük Seri</div>
+        </div>
+        <div class="kt-stat">
+          <div class="kt-stat-deger" id="ktBugunkuEl">—</div>
+          <div class="kt-stat-lbl">Bugün Bildim</div>
+        </div>
+        <div class="kt-stat">
+          <div class="kt-stat-deger" id="ktToplamEl">—</div>
+          <div class="kt-stat-lbl">Toplam Kart</div>
+        </div>
+      </div>
+
+      <div class="ed-rule-thin"></div>
+
+      <div class="kt-baslat-alan">
+        <button class="kt-baslat-btn" onclick="flashcardBaslat()">Kartları Başlat</button>
+        <p class="kt-not">Her seferinde farklı bir sıralama</p>
+      </div>
+
+      <div class="kt-nasil-kart">
+        <div class="kt-nasil-ikon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+        </div>
+        <p class="kt-nasil-txt"><strong>Nasıl çalışır?</strong> Her gün 10 kart açılır. Kartı çevir, bildiğini işaretle, serini büyüt. Bildiklerin daha seyrek, bilmediklerin daha sık karşına çıkar.</p>
+      </div>
+    </div>
+
+    <!-- ══════ TAB: ATÖLYE ══════ -->
+    <div class="ed-content" id="edTabArsiv" style="display:none">
+      <div class="ed-bolum-hero">
+        <h1 class="ed-pg-title">Kişisel <em>atölye.</em></h1>
+        <div class="at-subtitle">Odaklanmak ve takip etmek için kişisel araçların.</div>
+      </div>
+      <div class="ed-rule-bold"></div>
+      <div class="at-grid">
+
+        <!-- Sütun 1 -->
+        <div class="at-kolon">
+          <!-- Pomodoro -->
+          <div class="at-kart" id="atPomodoroKart">
+            <div class="at-kart-ust">
+              <div>
+                <div class="at-kart-no">01</div>
+                <div class="at-kart-isim">Pomodoro</div>
+                <div class="at-kart-desc">Odaklan, mola ver, tekrarla.</div>
+              </div>
+              <button class="at-ac-btn" onclick="atAc('pomodoro')">Aç</button>
+            </div>
+            <div class="at-panel" id="atPomodoro" style="display:none">
+              <div class="at-pom-modlar">
+                <button class="at-pom-mod selected" onclick="pomModSec('calis', this)">ÇALIŞMA</button>
+                <button class="at-pom-mod" onclick="pomModSec('kisa', this)">KISA MOLA</button>
+                <button class="at-pom-mod" onclick="pomModSec('uzun', this)">UZUN MOLA</button>
+              </div>
+              <div class="at-pom-sure" id="pomSure">25:00</div>
+              <div class="at-pom-bar"><div class="at-pom-bar-ic" id="pomBar"></div></div>
+              <div class="at-pom-butonlar">
+                <button class="at-pom-btn" id="pomBaslatBtn" onclick="pomBaslat()">BAŞLAT</button>
+                <button class="at-pom-btn ikincil" onclick="pomSifirla()">SIFIRLA</button>
+                <button class="at-pom-btn ikincil" onclick="pomTamEkranAc()" title="Tam Ekran">⛶</button>
+              </div>
+            </div>
+          </div>
+          <!-- Sınav Geri Sayımı -->
+          <div class="at-kart" id="atSinavKart">
+            <div class="at-kart-ust">
+              <div>
+                <div class="at-kart-no">04</div>
+                <div class="at-kart-isim">Sınav Sayacı</div>
+                <div class="at-kart-desc">Hedefe kaç gün kaldı?</div>
+              </div>
+              <button class="at-ac-btn" onclick="atAc('sinav')">Aç</button>
+            </div>
+            <div class="at-panel" id="atSinav" style="display:none">
+              <div class="sinav-liste" id="atSinavListe"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sütun 2 -->
+        <div class="at-kolon">
+          <!-- Not Defteri -->
+          <div class="at-kart" id="atNotKart">
+            <div class="at-kart-ust">
+              <div>
+                <div class="at-kart-no">02</div>
+                <div class="at-kart-isim">Not Defteri</div>
+                <div class="at-kart-desc">Düşüncelerini kaydet.</div>
+              </div>
+              <button class="at-ac-btn" onclick="atAc('not')">Aç</button>
+            </div>
+            <div class="at-panel" id="atNot" style="display:none">
+              <textarea class="at-not-alan" id="atNotAlan" placeholder="Buraya yaz..." oninput="notKaydet()"></textarea>
+              <div class="at-not-footer">
+                <span class="at-not-durum" id="atNotDurum">Kaydedildi</span>
+                <span class="at-not-sayac" id="atNotSayac">0 karakter</span>
+              </div>
+            </div>
+          </div>
+          <!-- Çalışma Günlüğü -->
+          <div class="at-kart" id="atCalismaKart">
+            <div class="at-kart-ust">
+              <div>
+                <div class="at-kart-no">05</div>
+                <div class="at-kart-isim">Çalışma Günlüğü</div>
+                <div class="at-kart-desc">Bugün ne çalıştın?</div>
+              </div>
+              <button class="at-ac-btn" onclick="atAc('calisma')">Aç</button>
+            </div>
+            <div class="at-panel" id="atCalisma" style="display:none">
+              <div class="at-calisma-form">
+                <input class="at-calisma-input" id="atCalismaKonu" type="text" placeholder="Konu (Matematik, Türkçe…)" maxlength="60"
+                  onkeydown="if(event.key==='Enter') calismaEkle()">
+                <div class="at-calisma-row">
+                  <input class="at-calisma-input at-calisma-sure" id="atCalismaSure" type="number" placeholder="Dakika" min="1" max="999"
+                    onkeydown="if(event.key==='Enter') calismaEkle()">
+                  <button class="at-calisma-ekle" onclick="calismaEkle()">EKLE →</button>
+                </div>
+              </div>
+              <div class="at-calisma-liste" id="atCalismaListe"></div>
+              <div class="at-calisma-ozet" id="atCalismaOzet"></div>
+              <button class="at-calisma-gecmis-btn" id="atCalismaGecmisBtn" onclick="calismaGecmisToggle()">GEÇMİŞ →</button>
+              <div class="at-calisma-gecmis" id="atCalismaGecmis" style="display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sütun 3 -->
+        <div class="at-kolon">
+          <!-- Ses Ortamı -->
+          <div class="at-kart" id="atSesKart">
+            <div class="at-kart-ust">
+              <div>
+                <div class="at-kart-no">03</div>
+                <div class="at-kart-isim">Ses Ortamı</div>
+                <div class="at-kart-desc">Odaklanmak için ortam sesleri.</div>
+              </div>
+              <button class="at-ac-btn" onclick="atAc('ses')">Aç</button>
+            </div>
+            <div class="at-panel" id="atSes" style="display:none">
+              <div class="ses-grid">
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-yagmur" onclick="sesToggle('yagmur', this)">🌧 Yağmur</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('yagmur', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-okyanus" onclick="sesToggle('okyanus', this)">🌊 Okyanus</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('okyanus', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-ruzgar" onclick="sesToggle('ruzgar', this)">🌬 Rüzgar</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('ruzgar', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-firtina" onclick="sesToggle('firtina', this)">⛈ Fırtına</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('firtina', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-ates" onclick="sesToggle('ates', this)">🔥 Kamp Ateşi</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('ates', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-beyaz" onclick="sesToggle('beyaz', this)">〰 Beyaz</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('beyaz', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-pembe" onclick="sesToggle('pembe', this)">🎵 Pembe</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('pembe', this.value)">
+                </div>
+                <div class="ses-item">
+                  <button class="ses-btn" id="sesBtn-kahve" onclick="sesToggle('kahve', this)">🍂 Kahverengi</button>
+                  <input type="range" class="ses-slider" min="0" max="100" value="60" oninput="sesVolume('kahve', this.value)">
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Ders Programı -->
+          <div class="at-kart" id="atDersKart">
+            <div class="at-kart-ust">
+              <div>
+                <div class="at-kart-no">06</div>
+                <div class="at-kart-isim">Ders Programı</div>
+                <div class="at-kart-desc">Haftanı planla, takibini yap.</div>
+              </div>
+              <button class="at-ac-btn" id="atDersAcBtn" onclick="dersProgramiAc()">Aç</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── DERS PROGRAMI OVERLAY ── -->
+    <div class="dp-overlay" id="dpOverlay" style="display:none">
+      <div class="dp-header">
+        <div class="dp-baslik">Ders <em>Programı.</em></div>
+        <button class="dp-kapat" onclick="dersProgramiKapat()">✕ KAPAT</button>
+      </div>
+      <div class="dp-rule"></div>
+      <div class="dp-icerik" id="dpIcerik"></div>
+    </div>
+
+    <!-- ── MOD SEÇİM OVERLAY ── -->
+    <div id="edModPanel" class="ed-mod-overlay" style="display:none" onclick="edModKapat(event)">
+      <div class="ed-mod-box">
+        <div class="ed-mod-header">
+          <div>
+            <div class="ed-mod-kat" id="edModKatAdi"></div>
+            <div class="ed-mod-baslik">Oyun modunu seç</div>
+          </div>
+          <button class="ed-mod-kapat-btn" onclick="edModKapat()">✕</button>
+        </div>
+        <div class="ed-mod-kartlar">
+          <div class="ed-mod-kart selected" data-mod="klasik" onclick="edModSecKart('klasik', this)">
+            <div class="ed-mod-kart-isim">Klasik</div>
+            <div class="ed-mod-kart-bilgi">10 soru · 3 can</div>
+            <div class="ed-mod-kart-tag">Standart yarışma</div>
+          </div>
+          <div class="ed-mod-kart" data-mod="hiz" onclick="edModSecKart('hiz', this)">
+            <div class="ed-mod-kart-isim">Hız</div>
+            <div class="ed-mod-kart-bilgi">5sn/soru · sınırsız</div>
+            <div class="ed-mod-kart-tag">En çok doğru</div>
+          </div>
+          <div class="ed-mod-kart" data-mod="sonsuz" onclick="edModSecKart('sonsuz', this)">
+            <div class="ed-mod-kart-isim">Sonsuz</div>
+            <div class="ed-mod-kart-bilgi">Yanılana kadar</div>
+            <div class="ed-mod-kart-tag">Kişisel rekor avı</div>
+          </div>
+          <div class="ed-mod-kart" data-mod="sinav" onclick="edModSecKart('sinav', this)">
+            <div class="ed-mod-kart-isim">Sınav</div>
+            <div class="ed-mod-kart-bilgi">20 soru · zamanlı</div>
+            <div class="ed-mod-kart-tag">Lig için ısınma</div>
+          </div>
+        </div>
+        <div class="ed-mod-footer">
+          <button class="ed-mod-basla-btn" onclick="edModBasla()">Quize Başla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── POMODORO TAM EKRAN ── -->
+    <div class="pom-fs-overlay" id="pomFsOverlay" style="display:none">
+      <button class="pom-fs-kapat" onclick="pomTamEkranKapat()">✕ Çık</button>
+      <div class="pom-fs-icerik">
+        <div class="pom-fs-modlar">
+          <button class="pom-fs-mod selected" onclick="pomModSec('calis', this)">Çalışma</button>
+          <button class="pom-fs-mod" onclick="pomModSec('kisa', this)">Kısa Mola</button>
+          <button class="pom-fs-mod" onclick="pomModSec('uzun', this)">Uzun Mola</button>
+        </div>
+        <div class="pom-fs-sure" id="pomFsSure">25:00</div>
+        <div class="pom-fs-bar"><div class="pom-fs-bar-ic" id="pomFsBar"></div></div>
+        <div class="pom-fs-butonlar">
+          <button class="pom-fs-btn" id="pomFsBaslatBtn" onclick="pomBaslat()">BAŞLAT</button>
+          <button class="pom-fs-btn ikincil" onclick="pomSifirla()">SIFIRLA</button>
+        </div>
+      </div>
     </div>
 
     <!-- ── FOOTER ── -->
@@ -525,11 +1215,6 @@
         <button class="mod-btn" data-mod="sonsuz" onclick="modSec('sonsuz', this)"><span class="mod-icon">♾️</span><span class="mod-name">Sonsuz</span></button>
         <button class="mod-btn" data-mod="sinav" onclick="modSec('sinav', this)"><span class="mod-icon">📝</span><span class="mod-name">Sınav</span></button>
       </div>
-      <div id="difficultyRow" class="difficulty-row">
-        <button class="diff-btn" data-diff="kolay" onclick="zorlukSec('kolay', this)">Kolay</button>
-        <button class="diff-btn selected" data-diff="orta" onclick="zorlukSec('orta', this)">Orta</button>
-        <button class="diff-btn" data-diff="zor" onclick="zorlukSec('zor', this)">Zor</button>
-      </div>
       <div id="categoryGrid" class="category-grid"></div>
       <div id="wordleSub"></div>
       <span id="mobilStreakChip"><span id="mobilStreakSayi"></span></span>
@@ -537,55 +1222,164 @@
 
   </div>
 
-  <!-- ═══════════ QUIZ EKRANI ═══════════ -->
-  <div class="screen" id="quizScreen">
-    <div class="glass-card quiz-card">
-      <div class="quiz-header">
-        <div class="quiz-progress-bar">
-          <div class="quiz-progress-fill" id="progressFill"></div>
-        </div>
-        <div class="lives-display" id="livesDisplay">
-          <span class="can-icon">❤️</span>
-          <span class="can-icon">❤️</span>
-          <span class="can-icon">❤️</span>
-        </div>
-        <span class="quiz-timer" id="quizTimer">⏱️ 2:00</span>
+  <!-- ══════ TAHMİN ET EKRANI ══════ -->
+  <div class="screen" id="tahminScreen">
+    <div class="th-top">
+      <button class="th-cik" onclick="tahminCik()">← Çık</button>
+      <div class="th-baslik">KESTİR</div>
+      <div class="th-skor" id="thSkorEl">0 PTS</div>
+    </div>
+    <div class="th-prog-wrap">
+      <div class="th-prog-bar"><div class="th-prog-ic" id="thProgIc"></div></div>
+      <div class="th-prog-lbl" id="thProgLbl">01 / 10</div>
+    </div>
+    <div class="th-soru-alan">
+      <div class="th-soru" id="thSoruEl"></div>
+      <div class="th-birim" id="thBirimEl"></div>
+    </div>
+    <div class="th-input-alan" id="thInputAlan">
+      <div class="th-input-row">
+        <button class="th-pm-btn" onclick="thDegistir(-1)">−</button>
+        <input type="number" class="th-input" id="thInput" placeholder="?" inputmode="numeric" autocomplete="off">
+        <button class="th-pm-btn" onclick="thDegistir(1)">+</button>
       </div>
-
-      <div class="quiz-top-row">
-        <div class="top-left">
-          <span class="question-number" id="questionNumber"></span>
-          <span class="streak-display" id="streakDisplay"></span>
-          <button class="rapor-btn" id="raporBtn" onclick="soruRaporla()" title="Bu soruyu raporla">🚩</button>
+      <button class="th-tamam-btn" onclick="thTahminEt()">KESTİR →</button>
+    </div>
+    <div class="th-sonuc" id="thSonuc" style="display:none">
+      <div class="th-etiket" id="thEtiketEl"></div>
+      <div class="th-karsilastir">
+        <div class="th-karsilastir-satir">
+          <span class="th-k-lbl">DOĞRU CEVAP</span>
+          <span class="th-k-val dogru" id="thDogruEl"></span>
         </div>
-        <div class="joker-buttons">
-          <button class="joker-btn" id="joker5050" onclick="jokerKullan('5050')" title="50:50 - İki yanlışı sil">
-            <span>50:50</span>
-            <small>1 hakkın var</small>
-          </button>
-          <button class="joker-btn" id="jokerTime" onclick="jokerKullan('time')" title="+15 saniye ekle">
-            <span>⏳ +15</span>
-            <small>1 hakkın var</small>
-          </button>
-          <button class="joker-btn hint-btn" id="jokerHint" onclick="jokerKullan('hint')" title="İpucu - İlk harfi göster">
-            <span>💡 İpucu</span>
-            <small>1 hakkın var</small>
-          </button>
+        <div class="th-karsilastir-satir">
+          <span class="th-k-lbl">TAHMİNİN</span>
+          <span class="th-k-val" id="thTahminEl"></span>
         </div>
       </div>
-      
-      <div id="mediaContainer" class="media-container"></div>
-      <div class="question-text" id="questionText"></div>
-      
-      <div class="options-list" id="optionsList"></div>
-      
-      <div class="feedback-bar" id="feedbackBar"></div>
-      <div class="aciklama-bar" id="aciklamaBar"></div>
-      <button class="btn btn-primary" id="nextBtn" onclick="sonrakiSoru()">
-        SONRAKİ SORU →
-      </button>
+      <div class="th-bar-wrap">
+        <div class="th-bar-zemin"><div class="th-bar-el" id="thBarEl"></div></div>
+        <div class="th-bar-isaretler"><span>Uzak</span><span>Yakın</span><span>Tam</span></div>
+      </div>
+      <div class="th-puan-kazan" id="thPuanEl"></div>
+      <button class="th-sonraki-btn" id="thSonrakiBtn" onclick="thSonraki()">SONRAKI →</button>
+    </div>
+    <div class="th-final" id="thFinal" style="display:none">
+      <div class="th-final-emoji" id="thFinalEmoji">🎯</div>
+      <div class="th-final-skor" id="thFinalSkor">0</div>
+      <div class="th-final-maks" id="thFinalMaks">/ 10.000 PUAN</div>
+      <div class="th-final-yorum" id="thFinalYorum"></div>
+      <button class="th-tamam-btn" onclick="tahminBaslat()">TEKRAR OYNA →</button>
+      <button class="th-cik-btn" onclick="tahminCik()">ANA SAYFAYA DÖN</button>
     </div>
   </div>
+
+  <!-- ═══════════ QUIZ EKRANI ═══════════ -->
+  <div class="screen" id="quizScreen">
+
+  <div class="qz-top">
+    <button class="qz-cik" onclick="anaSayfa()">← Çık</button>
+    <div class="qz-mod-lbl" id="qzModLbl">KLASIK</div>
+    <div class="qz-canlar" id="livesDisplay">
+      CAN&nbsp;
+      <span class="can-icon">❤️</span>
+      <span class="can-icon">❤️</span>
+      <span class="can-icon">❤️</span>
+    </div>
+  </div>
+
+  <div class="qz-prog-bar">
+    <div class="qz-ring-wrap">
+      <svg viewBox="0 0 100 100" width="68" height="68">
+        <circle cx="50" cy="50" r="40" fill="none" stroke-width="9" class="qz-ring-track"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke-width="9" id="qzRingFill"
+          class="qz-ring-fill" stroke-dasharray="251" stroke-dashoffset="0"
+          transform="rotate(-90 50 50)"/>
+        <text id="qzTimerNum" x="50" y="58" text-anchor="middle" class="qz-ring-num">60</text>
+      </svg>
+    </div>
+    <div class="qz-prog-info">
+      <div class="qz-prog-top-row">
+        <span class="qz-prog-txt" id="questionNumber">01 / 10</span>
+        <span class="qz-puan-lbl" id="qzPuanLbl">0 puan</span>
+      </div>
+      <div class="qz-segs" id="qzSegs"></div>
+    </div>
+  </div>
+
+  <div class="qz-body">
+
+    <div class="qz-vsb" aria-hidden="true">
+      <div class="qz-vsb-txt" id="qzVsbTxt">MERAK · BÖLÜM</div>
+    </div>
+
+    <div class="qz-sol">
+      <span class="qz-x qz-x-tl">✦</span>
+
+      <div class="qz-q-card">
+        <div class="qz-soru-hdr">
+          <div class="qz-soru-lbl" id="qzSoruLbl">SORU 01</div>
+          <span class="qz-q-puan-badge" id="qzQPuanBadge">☐ 100 puan</span>
+        </div>
+        <div id="mediaContainer" class="media-container"></div>
+        <div class="question-text qz-q" id="questionText"></div>
+        <div class="qz-source-row" id="qzSourceRow"></div>
+      </div>
+
+      <div class="ed-rule-thin" style="margin:16px 0 12px"></div>
+
+      <p class="qz-j-lbl">JOKERLER</p>
+      <div class="qz-joker-row">
+        <button class="qz-joker" id="joker5050" onclick="jokerKullan('5050')">
+          <span class="qz-j-ad">50:50</span>
+          <span class="qz-j-ac">2 YANLIŞI SİL</span>
+        </button>
+        <button class="qz-joker" id="jokerTime" onclick="jokerKullan('time')">
+          <span class="qz-j-ad">⏳ +15</span>
+          <span class="qz-j-ac">SÜRE UZAT</span>
+        </button>
+        <button class="qz-joker" id="jokerHint" onclick="jokerKullan('hint')">
+          <span class="qz-j-ad">💡 İPUCU</span>
+          <span class="qz-j-ac">İLK HARFİ GÖR</span>
+        </button>
+      </div>
+
+      <div style="display:none">
+        <span id="streakDisplay"></span>
+        <button id="raporBtn" onclick="soruRaporla()">🚩</button>
+      </div>
+
+      <span class="qz-x qz-x-bl">✦</span>
+    </div>
+
+    <div class="qz-sag">
+      <div class="qz-sag-top">
+        <span class="qz-sec-lbl">SEÇENEKLER</span>
+        <span class="qz-timer-lbl" id="quizTimer">00:30</span>
+      </div>
+      <div class="qz-t-track"><div class="qz-t-fill" id="qzTFill"></div></div>
+
+      <div class="options-list qz-opts" id="optionsList"></div>
+
+      <div class="feedback-bar" id="feedbackBar"></div>
+      <div class="aciklama-bar" id="aciklamaBar"></div>
+
+      <div class="qz-bot">
+        <span class="qz-kbd-hint">[ A B C D ] SEÇ · [ ↵ ] ONAYLA</span>
+        <button class="qz-next-btn btn btn-primary" id="nextBtn" onclick="nextBtnTikla()">ONAYLA →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:none">
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <span class="qz-x qz-x-tr">✦</span>
+  <span class="qz-x qz-x-br">✦</span>
+
+</div>
 
   <!-- ═══════════ PROFİL ═══════════ -->
   <div class="screen" id="profileScreen">
@@ -602,45 +1396,77 @@
       <!-- 3-sütun gövde -->
       <div class="pr-body">
 
-        <!-- SOL: İsim + İstatistikler -->
+        <!-- SOL: Avatar + İsim + İstatistikler -->
         <div class="pr-left">
+
+          <!-- Avatar hero (mobile only) -->
+          <div class="pr-avatar-hero">
+            <div class="pr-avatar-kart" id="prAvatarKart" onclick="prAvatarTikla()">
+              <img class="pr-avatar-foto" id="prAvatarFoto" src="" alt="" style="display:none">
+              <span class="pr-avatar-harf" id="prAvatarHarf">M</span>
+              <div class="pr-avatar-edit-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+            </div>
+            <input type="file" id="prFotoInput" accept="image/*" style="display:none" onchange="prFotoSec(this)">
+          </div>
+
           <div class="pr-meta" id="prMeta">ÜYE</div>
           <div class="pr-name" id="prName">Misafir</div>
+          <div class="pr-sub-meta" id="prSubMeta"></div>
           <div class="pr-sub" id="prSub"></div>
+          <div class="pr-streak-pill" id="prStreakPill" style="display:none"></div>
+          <button id="bildirimBtn" onclick="bildirimIzniIste()" style="display:none;margin:8px auto 2px;padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;letter-spacing:0.2px">🔔 Günlük hatırlatıcı aç</button>
           <div class="pr-hr"></div>
           <div class="pr-stats">
-            <div class="pr-stat">
-              <div class="pr-stat-lbl">TOPLAM PUAN</div>
-              <div class="pr-stat-val" id="prTotalPuan">—</div>
+            <div class="pr-stats-row pr-stats-row-2">
+              <div class="pr-stat">
+                <div class="pr-stat-lbl">TOPLAM PUAN</div>
+                <div class="pr-stat-val" id="prTotalPuan">—</div>
+                <div class="pr-stat-hint" id="prTotalPuanHint">Oyna kazan</div>
+              </div>
+              <div class="pr-stat">
+                <div class="pr-stat-lbl">TOPLAM OYUN</div>
+                <div class="pr-stat-val" id="prTotalOyun">—</div>
+                <div class="pr-stat-hint" id="prTotalOyunHint">Başla</div>
+              </div>
             </div>
-            <div class="pr-stat">
-              <div class="pr-stat-lbl">TOPLAM OYUN</div>
-              <div class="pr-stat-val" id="prTotalOyun">—</div>
-            </div>
-            <div class="pr-stat">
-              <div class="pr-stat-lbl">DOĞRU ORANI</div>
-              <div class="pr-stat-val pr-accent" id="prOran">—</div>
-            </div>
-            <div class="pr-stat">
-              <div class="pr-stat-lbl">EN UZUN SERİ</div>
-              <div class="pr-stat-val" id="prMaxStreak">—</div>
+            <div class="pr-stats-row pr-stats-row-3">
+              <div class="pr-stat">
+                <div class="pr-stat-lbl">DOĞRU ORANI</div>
+                <div class="pr-stat-val pr-accent" id="prOran">—</div>
+              </div>
+              <div class="pr-stat">
+                <div class="pr-stat-lbl">EN UZUN SERİ</div>
+                <div class="pr-stat-val" id="prMaxStreak">—</div>
+              </div>
+              <div class="pr-stat">
+                <div class="pr-stat-lbl">BU HAFTA</div>
+                <div class="pr-stat-val" id="prBuHafta">—</div>
+              </div>
             </div>
           </div>
-          <div class="pr-hr"></div>
-          <div class="pr-slbl" style="margin-bottom:8px">KATEGORİ</div>
-          <div id="prKatBars" class="pr-kat-bars"></div>
+          <div class="pr-kat-section">
+            <div class="pr-hr"></div>
+            <div class="pr-slbl" style="margin-bottom:8px">KATEGORİ</div>
+            <div id="prKatBars" class="pr-kat-bars"></div>
+          </div>
         </div>
 
         <!-- ORTA: Grafikler + Rozetler -->
         <div class="pr-mid">
-          <div class="pr-slbl">SON 13 HAFTA</div>
-          <div class="pr-barchart" id="prBarChart"></div>
-          <div class="pr-chart-labels">
-            <span>13 hf önce</span>
-            <span>Bu hafta</span>
-          </div>
-          <div class="pr-slbl" style="margin-top:22px">BU HAFTA GÜNLÜK</div>
+          <div class="pr-slbl">BU HAFTA GÜNLÜK</div>
           <div class="pr-week" id="prWeek"></div>
+          <div class="pr-son13-hdr">
+            <div class="pr-slbl" style="margin:0">SON 13 HAFTA</div>
+          </div>
+          <div class="pr-barchart-kart">
+            <div class="pr-barchart" id="prBarChart"></div>
+            <div class="pr-chart-labels">
+              <span>13 hf önce</span>
+              <span>Bu hafta</span>
+            </div>
+          </div>
           <div class="pr-slbl" style="margin-top:22px">ROZETLER</div>
           <div class="pr-rozetler" id="prRozetler"></div>
           <div class="pr-altin-row">
@@ -810,23 +1636,23 @@
   <!-- ═══════════ FLASHCARD EKRANI ═══════════ -->
   <div class="screen" id="flashcardScreen">
     <div class="glass-card fc-card">
-      <div class="modal-header" style="margin-bottom:16px;">
-        <button class="back-btn" onclick="ekranGoster('homeScreen', true)">← Geri</button>
-        <div class="section-label" style="margin:0">🃏 Flashcard</div>
-        <div style="width:60px"></div>
+      <div class="fc-header">
+        <button class="fc-geri-btn" onclick="flashcardGeri()">← Geri</button>
+        <div class="fc-baslik">🃏 FLASHCARD</div>
+        <div class="fc-header-sag">···</div>
       </div>
 
-      <div class="progress-row" id="fcProgressRow">
-        <div class="progress-bar"><div class="progress-fill" id="fcProgressFill"></div></div>
-        <div class="progress-text" id="fcProgressText">1 / 10</div>
+      <div class="fc-prog-ust" id="fcProgressRow">
+        <span class="fc-prog-kategori" id="fcKategori">Bilim</span>
+        <span class="fc-prog-sayi" id="fcProgressText">1 / 10</span>
       </div>
+      <div class="fc-prog-bar"><div class="fc-prog-fill" id="fcProgressFill"></div></div>
 
       <div class="fc-wrapper" id="fcWrapper" onclick="flashcardCevir()">
         <div class="fc-inner" id="fcInner">
           <div class="fc-front">
-            <div class="kategori" id="fcKategori">Bilim</div>
+            <div class="fc-soru-lbl">SORU</div>
             <div class="soru" id="fcSoru">Yükleniyor...</div>
-            <div class="hint">kartı çevir</div>
           </div>
           <div class="fc-back">
             <div class="cevap-label">Cevap</div>
@@ -835,11 +1661,13 @@
           </div>
         </div>
       </div>
+      <div class="fc-cevir-hint">kartı çevir</div>
 
       <div class="btn-row" id="fcBtnRow">
-        <button class="btn btn-bilmiyorum" onclick="flashcardSonraki(false)">✗ Bilmiyorum</button>
-        <button class="btn btn-biliyorum" onclick="flashcardSonraki(true)">✓ Bildim</button>
+        <button class="fc-btn fc-btn-bilmiyorum" onclick="flashcardSonraki(false)">✗ Bilmedim</button>
+        <button class="fc-btn fc-btn-biliyorum" onclick="flashcardSonraki(true)">✓ Bildim</button>
       </div>
+      <div class="fc-motivasyon">Her tekrar, bir adım daha.</div>
 
       <div class="bitis" id="fcBitisEkrani" style="display:none;">
         <div class="bitis-emoji">🎉</div>
@@ -856,41 +1684,75 @@
 
   <!-- ═══════════ SONUÇ EKRANI ═══════════ -->
   <div class="screen" id="resultScreen">
-    <div class="glass-card result-card">
-      <div class="result-emoji" id="resultEmoji"></div>
-      <div class="result-rank" id="resultRank"></div>
-      <div class="result-score" id="resultScore"></div>
-      <div class="result-text" id="resultText"></div>
+    <div class="rs-wrap">
 
-      <div class="challenge-result" id="challengeResult" style="display:none;"></div>
+      <!-- Gizli legacy elementler (JS uyumluluğu için) -->
+      <span id="resultEmoji" style="display:none"></span>
+      <span id="resultRank" style="display:none"></span>
+      <span id="resultScore" style="display:none"></span>
+      <span id="resultText" style="display:none"></span>
 
-      <div class="result-details">
-        <div class="result-stat">
-          <div class="val" style="color:#fbbf24" id="earnedGold">0</div>
-          <div class="stat-label">Altın</div>
+      <!-- Ana skor kartı -->
+      <div class="rs-main-card">
+        <div class="rs-card-header">
+          <span class="rs-oyun-bitti">OYUN<br>BİTTİ</span>
+          <span class="rs-mod-lbl" id="rsModLbl">□ KLASİK · KARIŞIK</span>
         </div>
-        <div class="result-stat">
-          <div class="val c" id="correctCount">0</div>
-          <div class="stat-label">Doğru</div>
+
+        <div class="rs-ring-wrap">
+          <svg viewBox="0 0 200 200" width="180" height="180">
+            <circle cx="100" cy="100" r="78" fill="none" stroke-width="10" class="rs-ring-track"/>
+            <circle cx="100" cy="100" r="78" fill="none" stroke-width="10" id="rsRingFill"
+              class="rs-ring-fill" stroke-dasharray="490" stroke-dashoffset="490"
+              transform="rotate(-90 100 100)"/>
+            <text id="rsRingScore" x="100" y="96" text-anchor="middle" dominant-baseline="middle" class="rs-ring-num">0</text>
+            <text x="100" y="116" text-anchor="middle" dominant-baseline="middle" class="rs-ring-puan-lbl">PUAN</text>
+          </svg>
         </div>
-        <div class="result-stat">
-          <div class="val w" id="wrongCount">0</div>
-          <div class="stat-label">Yanlış</div>
-        </div>
-        <div class="result-stat">
-          <div class="val t" id="timeSpent">0sn</div>
-          <div class="stat-label">Süre</div>
+
+        <div class="rs-grade-title" id="rsGradeTitle">Genel Kültür Şart</div>
+        <div class="rs-grade-quote" id="rsGradeQuote">"Pes etme — her soru bir adım."</div>
+
+        <div class="rs-divider"></div>
+
+        <div class="rs-stats">
+          <div class="rs-stat">
+            <div class="rs-stat-val rs-gold" id="earnedGold">+0</div>
+            <div class="rs-stat-lbl">ALTIN</div>
+          </div>
+          <div class="rs-stat-sep"></div>
+          <div class="rs-stat">
+            <div class="rs-stat-val rs-correct" id="correctCount">0</div>
+            <div class="rs-stat-lbl">DOĞRU</div>
+          </div>
+          <div class="rs-stat-sep"></div>
+          <div class="rs-stat">
+            <div class="rs-stat-val rs-wrong" id="wrongCount">0</div>
+            <div class="rs-stat-lbl">YANLIŞ</div>
+          </div>
+          <div class="rs-stat-sep"></div>
+          <div class="rs-stat">
+            <div class="rs-stat-val" id="timeSpent">0sn</div>
+            <div class="rs-stat-lbl">SÜRE</div>
+          </div>
         </div>
       </div>
 
+      <!-- Challenge sonucu -->
+      <div class="challenge-result" id="challengeResult" style="display:none;"></div>
+
+      <!-- Yeni rozetler -->
       <div class="rozet-earned-section" id="yeniRozetler" style="display:none;"></div>
 
+      <!-- Kategori insight -->
       <div class="kategori-insight" id="kategoriInsight" style="display:none;">
         <span class="insight-label" id="insightLabel"></span>
         <span class="insight-val" id="insightVal"></span>
         <span class="insight-sub" id="insightSub"></span>
       </div>
 
+      <!-- Liderboard -->
+      <div class="rs-section-lbl">LIDERBOARD</div>
       <div class="leaderboard">
         <div class="lb-tabs">
           <button class="lb-tab active" onclick="lbTabSec('local', this)">🏠 Yerel</button>
@@ -899,16 +1761,17 @@
         <div id="leaderboardList"></div>
         <div id="onlineLiderboardList" style="display:none;"></div>
       </div>
-      
+
       <div class="result-buttons">
         <button class="btn btn-outline" onclick="anaSayfa()">🏠 ANA SAYFA</button>
         <button class="btn btn-primary" onclick="baslat()">🔄 TEKRAR OYNA</button>
       </div>
       <div class="share-row">
         <button class="share-btn wa-btn" onclick="paylasWhatsApp()">📱 WhatsApp</button>
-        <button class="share-btn x-btn" onclick="paylasTwitter()">✖ X / Twitter</button>
+        <button class="share-btn x-btn" onclick="paylasTwitter()">𝕏 Twitter</button>
         <button class="share-btn challenge-btn" onclick="meydanOkuLinki()">🤺 Meydan Oku</button>
       </div>
+
     </div>
   </div>
 
@@ -959,12 +1822,6 @@
 <canvas id="konfetiCanvas"></canvas>
 
 <!-- ═══════════ SOL FAB (FLASHCARD) ═══════════ -->
-<div class="fab-wrap-left" id="fabWrapLeft">
-  <button class="fab-ana-left" onclick="flashcardBaslat()" aria-label="Flashcard">
-    <span class="fab-ana-ikon">🃏</span>
-  </button>
-</div>
-
 <!-- ═══════════ SPEED DIAL FAB ═══════════ -->
 <div class="fab-wrap" id="fabWrap">
   <div class="fab-menu" id="fabMenu">
@@ -998,13 +1855,18 @@
   </button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
-<script src="kelimeler.js"></script>
-<script src="sorular.js"></script>
-<script src="sorular-ek.js"></script>
-<script src="app.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script defer src="kelimeler.js"></script>
+<script defer src="cevaplar.js"></script>
+<script defer src="sorular.js"></script>
+<script defer src="sorular-ek.js"></script>
+<script defer src="app.js"></script>
+<script defer src="quiz.js"></script>
+<script defer src="wordle.js"></script>
+<script defer src="tahmin-sorular.js"></script>
+<script defer src="tahmin.js"></script>
 </body>
 </html>
