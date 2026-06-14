@@ -1,16 +1,17 @@
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
-
-const CACHE = 'bm-v40';
+const CACHE = 'bm-v475';
 const ASSETS = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
+  '/quiz.js',
+  '/wordle.js',
   '/sorular.js',
   '/sorular-ek.js',
   '/kelimeler.js',
+  '/cevaplar.js',
   '/manifest.json',
+  '/manifest-portal.json',
   '/icon.svg',
   '/icon-maskable.svg',
   '/favicon.svg',
@@ -32,53 +33,54 @@ const ASSETS = [
   '/images/bayrak.svg',
   '/images/logo.svg',
   '/images/astronomi.jpg',
-  '/images/hayvanlar.jpg'
+  '/images/hayvanlar.jpg',
+  '/tahmin-sorular.js',
+  '/tahmin.js',
+  '/cevaplar.js',
+  '/sounds/dogru.mp3',
+  '/sounds/yanlis.mp3',
+  '/sounds/geri-sayim.mp3',
+  '/portal.html'
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS))
+    caches.open(CACHE)
+      .then(c => Promise.allSettled(ASSETS.map(a => c.add(a).catch(() => {}))))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
-});
-
-firebase.initializeApp({
-  apiKey: 'AIzaSyAqZ5Xdr2J4iOTSs587DrFtD6dqTzAN8ac',
-  authDomain: 'baris-2ddf6.firebaseapp.com',
-  projectId: 'baris-2ddf6',
-  storageBucket: 'baris-2ddf6.firebasestorage.app',
-  messagingSenderId: '736508330364',
-  appId: '1:736508330364:web:7a4281b2ee1f1dfd7d24f9'
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(function(payload) {
-  const notificationTitle = payload.notification.title || 'Merak.io';
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon.svg',
-    badge: '/icon-maskable.svg'
-  };
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  e.waitUntil(clients.openWindow(e.notification.data?.url || '/'));
 });
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  // Auth arkaplan görselleri: her zaman network'ten (cache sorunu yaşanmasın)
+  if (url.origin === self.location.origin && (url.pathname === '/images/spor.jpg' || url.pathname === '/images/sanat.jpg')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+  // HTML dosyaları: network-first (her zaman taze header alır)
+  if (url.origin === self.location.origin && (url.pathname.endsWith('.html') || url.pathname === '/')) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+  // Diğerleri: cache-first
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -91,3 +93,31 @@ self.addEventListener('fetch', e => {
     })
   );
 });
+
+// Firebase push bildirimleri — yüklenemezse SW çalışmaya devam eder
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+  firebase.initializeApp({
+    apiKey: 'AIzaSyAqZ5Xdr2J4iOTSs587DrFtD6dqTzAN8ac',
+    authDomain: 'baris-2ddf6.firebaseapp.com',
+    projectId: 'baris-2ddf6',
+    storageBucket: 'baris-2ddf6.firebasestorage.app',
+    messagingSenderId: '736508330364',
+    appId: '1:736508330364:web:7a4281b2ee1f1dfd7d24f9'
+  });
+  const messaging = firebase.messaging();
+  messaging.onBackgroundMessage(function(payload) {
+    const notificationTitle = payload.notification.title || 'Merak.io';
+    const notificationOptions = {
+      body: payload.notification.body,
+      icon: '/icon.svg',
+      badge: '/icon-maskable.svg'
+    };
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+  self.addEventListener('notificationclick', e => {
+    e.notification.close();
+    e.waitUntil(clients.openWindow(e.notification.data?.url || '/'));
+  });
+} catch(e) {}
